@@ -1,4 +1,5 @@
 import sys
+import tkinter as tk
 from PyQt6.QtWidgets import QApplication
 from core.loader import load_agents, AgentRegistry
 from core.dashboard import Dashboard

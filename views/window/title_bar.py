@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QWidget, QLabel, QPushButton, QHBoxLayout
+from PyQt6.QtWidgets import QWidget, QLabel, QPushButton, QHBoxLayout, QSizePolicy
 from PyQt6.QtCore import Qt
 from views.window.resources import TITLE_BAR_BG, BUTTON_BG, BUTTON_HOVER, CLOSE_BUTTON_BG, CLOSE_BUTTON_HOVER, FONT_COLOR, APP_TITLE
 
@@ -8,6 +8,7 @@ class TitleBar(QWidget):
         self.parent = parent
         self.toggle_menu_callback = toggle_menu_callback
         self.setFixedHeight(40)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.setStyleSheet(f"background-color: {TITLE_BAR_BG}; color: {FONT_COLOR}; ")
         self.old_pos = None
 
