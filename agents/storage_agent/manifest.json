@@ -3,7 +3,7 @@
   "name": "storage_agent",
   "title": "Storage Agent",
   "description": "Пример агент-хранилище",
-  "icon": "💾",
+  "icon": "msc.file-media",
   "autoload": true,
   "dependencies": []
 }

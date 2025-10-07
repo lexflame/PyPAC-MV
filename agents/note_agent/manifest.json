@@ -1,0 +1,9 @@
+
+{
+  "name": "note_agent",
+  "title": "Note Agent",
+  "description": "Пример агент-заметок",
+  "icon": "fa5s.sticky-note",
+  "autoload": true,
+  "dependencies": []
+}

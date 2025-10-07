@@ -7,6 +7,7 @@ from core.database import DatabaseManager
 def main():
     print("=== PyPAC-MV starting ===")
 
+    # Логика
     app = QApplication(sys.argv)
 
     # 🗃 инициализация базы данных
@@ -17,11 +18,11 @@ def main():
 
     print(f"Загружено агентов: {len(agents)}")
     for name, meta in AgentRegistry.metadata.items():
-        print(f" - {name} ({meta.get('version', '1.0')})")
+        print(f" - {name} ({meta.get('version', '1.0')}) (icon: {meta.get('icon', '1.0')})")
         db.register_agent(name, meta.get('version', '1.0'))
 
     # 🧭 создаём Dashboard
-    dashboard = Dashboard(agents)
+    dashboard = Dashboard(agents, AgentRegistry)
     dashboard.show()
 
     sys.exit(app.exec())

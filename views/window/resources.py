@@ -1,0 +1,10 @@
+# Общие цвета, шрифты и стили для приложения
+APP_BACKGROUND = "#212121"
+TITLE_BAR_BG = "#212121"
+BUTTON_BG = "#212121"
+BUTTON_HOVER = "#5a5a5a"
+CLOSE_BUTTON_BG = "#e74c3c"
+CLOSE_BUTTON_HOVER = "#5a5a5a"
+APP_TITLE = "MindNavigator"
+FONT_FAMILY = "CenturyGothic"
+FONT_COLOR = "white"

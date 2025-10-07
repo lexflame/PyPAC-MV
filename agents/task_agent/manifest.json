@@ -3,7 +3,8 @@
   "name": "task_agent",
   "title": "Task Agent",
   "description": "Пример агент-задачи",
-  "icon": "💾",
+  "version": "1.1",
+  "icon": "fa5s.tasks",
   "autoload": true,
   "dependencies": []
 }

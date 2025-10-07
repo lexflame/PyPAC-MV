@@ -48,7 +48,7 @@ def _load_meta(agent_path: Path) -> dict:
         spec.loader.exec_module(module)
         return getattr(module, "meta", {})
 
-    return {"name": agent_path.name, "autoload": True}
+    return {"name": agent_path.name, "icon": agent_path.icon, "autoload": True}
 
 
 def load_agents(base_path='agents'):
