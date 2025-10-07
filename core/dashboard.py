@@ -15,44 +15,55 @@ class Dashboard(QWidget):
 
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
 
-        # Боковая панель (всегда видна)
+        """Боковая панель (всегда видна)"""
         self.side_menu = QFrame(self)
         self.side_menu.setStyleSheet(f"border: 0.5px solid black;")
         self.side_menu.setFixedWidth(45)
 
-        # Контент боковой панели
+        """Контент боковой панели"""
         layout_menu = QVBoxLayout()
         layout_menu.setContentsMargins(0, 0, 0, 0)
         layout_menu.setSpacing(0)
 
-        # Кнопки с иконками
-        self.home_btn = self._make_icon_button("fa5s.tasks", "Задачи")
-        self.tasks_btn = self._make_icon_button("ri.treasure-map-line", "Карты")
-        self.notes_btn = self._make_icon_button("fa5s.sticky-note", "Заметки")
-        self.stats_btn = self._make_icon_button("msc.file-media", "Статистика")
-        self.settings_btn = self._make_icon_button("fa5s.cog", "Настройки")
+        """Кнопки с иконками"""
+        # self.home_btn = self._make_icon_button("fa5s.tasks", "Задачи")
+        # self.tasks_btn = self._make_icon_button("ri.treasure-map-line", "Карты")
+        # self.notes_btn = self._make_icon_button("fa5s.sticky-note", "Заметки")
+        # self.stats_btn = self._make_icon_button("msc.file-media", "Статистика")
+        # self.settings_btn = self._make_icon_button("fa5s.cog", "Настройки")
+        #
+        # for btn in [self.home_btn, self.tasks_btn, self.notes_btn, self.stats_btn, self.settings_btn]:
+        #     layout_menu.addWidget(btn)
 
-        for btn in [self.home_btn, self.tasks_btn, self.notes_btn, self.stats_btn, self.settings_btn]:
-            layout_menu.addWidget(btn)
+        """Добавляем кнопки с иконками для перехода между табами"""
+        for name, meta in AgentRegistry.metadata.items():
+            item_btn = self._make_icon_button(meta.get('icon', 'fa5s.cog'), name)
+            layout_menu.addWidget(item_btn)
+
+        """Добавляем вкладки для всех агентов"""
+        # for name, agent in self.agents.items():
+        #    tab = self._create_agent_tab(agent, name)
+        #    self.tabs.addTab(tab, name.capitalize())
+        # self.setCentralWidget(self.tabs)
 
         layout_menu.addStretch()
         self.side_menu.setLayout(layout_menu)
 
-        # Заголовок
+        """Заголовок"""
         self.title_bar = TitleBar(self)
 
-        # Контент справа
+        """Контент справа"""
         self.content = QLabel("Привет! Это окно с **боковой панелью**, которая всегда видна.")
         self.content.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        # Объединяем боковую панель и контент
+        """Объединяем боковую панель и контент"""
         content_layout = QHBoxLayout()
         content_layout.setContentsMargins(0, 0, 0, 0)
         content_layout.setSpacing(0)
         content_layout.addWidget(self.side_menu)
         content_layout.addWidget(self.content)
 
-        # Общий layout
+        """Общий layout"""
         main_layout = QVBoxLayout()
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
@@ -61,16 +72,9 @@ class Dashboard(QWidget):
 
         self.setLayout(main_layout)
 
-        # Разворачиваем окно на весь экран
+        """Разворачиваем окно на весь экран"""
         screen_geometry = self.screen().availableGeometry()
         self.setGeometry(screen_geometry)
-
-        # добавляем вкладки для всех агентов
-        # for name, agent in self.agents.items():
-        #    tab = self._create_agent_tab(agent, name)
-        #    self.tabs.addTab(tab, name.capitalize())
-        # self.setCentralWidget(self.tabs)
-
 
     def _create_agent_tab(self, agent, name):
         """Создаёт вкладку для агента."""

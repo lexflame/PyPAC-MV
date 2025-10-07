@@ -49,7 +49,8 @@ class UiStyle:
                 font-family: '{self.font_family}';
                 font-size: {self.font_size}pt;
                 color: #ddd;
-                background-color: #2d2d2d;
+                background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:1,
+                                 stop:0 #1a1a1a, stop:1 #2a2a2a);
             }}
             QPushButton {{
                 background-color: #3a3a3a;

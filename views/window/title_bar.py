@@ -30,7 +30,7 @@ class TitleBar(QWidget):
 
         # Название окна
         self.title = QLabel(f"{APP_TITLE}")
-        self.title.setStyleSheet("padding-left: 5px;")
+        self.title.setStyleSheet(f"padding: 5px;")
         self.title.setAlignment(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft)
 
         # Кнопки управления окном
