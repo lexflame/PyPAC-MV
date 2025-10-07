@@ -1,11 +1,30 @@
-
-from PyQt6.QtWidgets import QApplication
-from core.loader import load_agents
 import sys
+from PyQt6.QtWidgets import QApplication
+from core.loader import load_agents, AgentRegistry
+from core.dashboard import Dashboard
+from core.database import DatabaseManager
 
-if __name__ == '__main__':
+def main():
+    print("=== PyPAC-MV starting ===")
+
     app = QApplication(sys.argv)
+
+    # 🗃 инициализация базы данных
+    db = DatabaseManager("pypac.db")
+
+    # 🔍 загрузка агентов
     agents = load_agents('agents')
-    for a in agents.values():
-        a.show()
+
+    print(f"Загружено агентов: {len(agents)}")
+    for name, meta in AgentRegistry.metadata.items():
+        print(f" - {name} ({meta.get('version', '1.0')})")
+        db.register_agent(name, meta.get('version', '1.0'))
+
+    # 🧭 создаём Dashboard
+    dashboard = Dashboard(agents)
+    dashboard.show()
+
     sys.exit(app.exec())
+
+if __name__ == "__main__":
+    main()
