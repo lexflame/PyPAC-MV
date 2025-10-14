@@ -1,14 +1,15 @@
-# style DarkTheme
-from config.theme.ui_style import UiStyle
+import qtawesome as qta
+
 from PyQt6.QtWidgets import QMainWindow, QTabWidget, QWidget, QVBoxLayout, QLabel, QFrame, QPushButton, QHBoxLayout, QSizePolicy
 from PyQt6.QtCore import Qt, QSize, QPropertyAnimation
-import qtawesome as qta
+
+from config.theme.ui_style import UiStyle
+from core.loader import AgentRegistry
+
 from views.window.title_bar import TitleBar
 from views.window.resources import (APP_TITLE)
 
 class Dashboard(QWidget):
-    """Главное окно PyPAC-MV — отображает всех агентов как вкладки."""
-
     def __init__(self, agents: dict, AgentRegistry):
         super().__init__()
         style = UiStyle(self)
@@ -25,26 +26,25 @@ class Dashboard(QWidget):
         layout_menu.setContentsMargins(0, 0, 0, 0)
         layout_menu.setSpacing(0)
 
-        """Кнопки с иконками"""
-        # self.home_btn = self._make_icon_button("fa5s.tasks", "Задачи")
-        # self.tasks_btn = self._make_icon_button("ri.treasure-map-line", "Карты")
-        # self.notes_btn = self._make_icon_button("fa5s.sticky-note", "Заметки")
-        # self.stats_btn = self._make_icon_button("msc.file-media", "Статистика")
-        # self.settings_btn = self._make_icon_button("fa5s.cog", "Настройки")
-        #
-        # for btn in [self.home_btn, self.tasks_btn, self.notes_btn, self.stats_btn, self.settings_btn]:
-        #     layout_menu.addWidget(btn)
-
         """Добавляем кнопки с иконками для перехода между табами"""
         for name, meta in AgentRegistry.metadata.items():
             item_btn = self._make_icon_button(meta.get('icon', 'fa5s.cog'), name)
             layout_menu.addWidget(item_btn)
 
-        """Добавляем вкладки для всех агентов"""
-        # for name, agent in self.agents.items():
-        #    tab = self._create_agent_tab(agent, name)
-        #    self.tabs.addTab(tab, name.capitalize())
-        # self.setCentralWidget(self.tabs)
+        """Добавляем табы для агентов"""
+        self.agents = agents
+        self.tabs = QTabWidget()
+        self.tabs.setTabPosition(QTabWidget.TabPosition.North)
+        self.tabs.setDocumentMode(True)
+
+        self.main_widget = QMainWindow(self)
+        self.main_widget.setFocus()
+
+        for name, agent in self.agents.items():
+            tab = self._create_agent_tab(agent, name)
+            label = agent.presentation.windowTitle() if hasattr(agent.presentation, 'windowTitle') else name
+            self.tabs.addTab(tab, label)
+        self.main_widget.setCentralWidget(self.tabs)
 
         layout_menu.addStretch()
         self.side_menu.setLayout(layout_menu)
@@ -62,6 +62,7 @@ class Dashboard(QWidget):
         content_layout.setSpacing(0)
         content_layout.addWidget(self.side_menu)
         content_layout.addWidget(self.content)
+        content_layout.addWidget(self.tabs)
 
         """Общий layout"""
         main_layout = QVBoxLayout()
@@ -77,15 +78,19 @@ class Dashboard(QWidget):
         self.setGeometry(screen_geometry)
 
     def _create_agent_tab(self, agent, name):
-        """Создаёт вкладку для агента."""
         widget = QWidget()
         layout = QVBoxLayout(widget)
-
-        if hasattr(agent, 'presentation') and hasattr(agent.presentation, 'widget'):
-            layout.addWidget(agent.presentation.widget)
-        else:
-            layout.addWidget(QLabel(f"⚠️ Агент {name} не имеет представления", alignment=Qt.AlignmentFlag.AlignCenter))
-
+        try:
+            if hasattr(agent.presentation, 'widget'):
+                layout.addWidget(agent.presentation.widget)
+            else:
+                cw = getattr(agent.presentation, 'centralWidget', lambda: None)()
+                if cw is not None:
+                    layout.addWidget(cw)
+                else:
+                    layout.addWidget(QLabel(f"⚠️ Агент {name} не имеет представления", alignment=Qt.AlignmentFlag.AlignCenter))
+        except Exception:
+            layout.addWidget(QLabel(f"⚠️ Ошибка отображения агента {name}", alignment=Qt.AlignmentFlag.AlignCenter))
         return widget
 
     def _make_icon_button(self, icon_name, tooltip):

@@ -1,24 +1,22 @@
-
-from PyQt6.QtWidgets import QMainWindow
 from PyQt6.QtCore import QObject, pyqtSignal
+from PyQt6.QtWidgets import QMainWindow
 
 class BaseModel:
     pass
 
 class BaseAbstraction(QObject):
     property_changed = pyqtSignal(str, object)
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None):
+        super().__init__(parent)
 
 class BasePresentation(QMainWindow):
-    pass
-
-class BaseView(QObject):
-    pass
+    """Base presentation: expects a .widget attribute for embedding in Dashboard."""
+    def __init__(self, parent=None):
+        super().__init__(parent)
 
 class BaseControl(QObject):
-    def __init__(self, presentation, abstraction):
-        super().__init__()
+    def __init__(self, presentation, abstraction, parent=None):
+        super().__init__(parent)
         self.presentation = presentation
         self.abstraction = abstraction
 
@@ -32,4 +30,7 @@ class BaseAgent:
             self.control = control_cls(presentation, abstraction)
     def show(self):
         if self.presentation:
-            self.presentation.show()
+            try:
+                self.presentation.show()
+            except Exception:
+                pass
