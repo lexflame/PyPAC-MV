@@ -31,6 +31,17 @@ class Dashboard(QWidget):
             item_btn = self._make_icon_button(meta.get('icon', 'fa5s.cog'), name)
             layout_menu.addWidget(item_btn)
 
+        """Добавляем область работы для проектов и ЧТО_ТО ЕЩЕ"""
+        self.nav_project = QTabWidget()
+        self.nav_project.setFixedWidth(250)
+        self.nav_project.setDocumentMode(True)
+
+        self.nav_project.widget = QWidget()
+        layout = QVBoxLayout(self.nav_project.widget)
+        project = self._create_agent_tab(self.nav_project.widget, name)
+        label = 'Проекты'
+        self.nav_project.addTab(project, label)
+
         """Добавляем табы для агентов"""
         self.agents = agents
         self.tabs = QTabWidget()
@@ -44,7 +55,7 @@ class Dashboard(QWidget):
             tab = self._create_agent_tab(agent, name)
             label = agent.presentation.windowTitle() if hasattr(agent.presentation, 'windowTitle') else name
             self.tabs.addTab(tab, label)
-        self.main_widget.setCentralWidget(self.tabs)
+        # self.main_widget.setCentralWidget(self.tabs)
 
         layout_menu.addStretch()
         self.side_menu.setLayout(layout_menu)
@@ -61,7 +72,7 @@ class Dashboard(QWidget):
         content_layout.setContentsMargins(0, 0, 0, 0)
         content_layout.setSpacing(0)
         content_layout.addWidget(self.side_menu)
-        content_layout.addWidget(self.content)
+        content_layout.addWidget(self.nav_project)
         content_layout.addWidget(self.tabs)
 
         """Общий layout"""
