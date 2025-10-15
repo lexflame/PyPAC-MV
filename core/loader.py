@@ -25,9 +25,9 @@ class AgentRegistry:
                 abs_ = abs_cls()
                 agent = BaseAgent(pres, abs_, ctrl_cls)
                 cls.agents[name] = agent
-                print(f"[PyPAC-MV] ✅ Агент загружен: {name}")
+                print(f"[PyPAC-MV OK] ✅ Агент загружен: {name}")
             else:
-                print(f"[PyPAC-MV] ⚠️ Агент {name} — неполный набор классов")
+                print(f"[PyPAC-MV WARNING] load_agents - ⚠️ Агент {name} — неполный набор классов")
     @classmethod
     def get(cls, name):
         return cls.agents.get(name)
@@ -50,7 +50,7 @@ def _load_meta(agent_path: Path) -> dict:
 def load_agents(base_path='agents'):
     path = Path(base_path)
     if not path.exists():
-        print(f"[PyPAC-MV] ❌ Нет каталога {base_path}")
+        print(f"[PyPAC-MV ERROR] load_agents - ❌ Нет каталога {base_path}")
         return {}
     for pkg in pkgutil.iter_modules([str(path)]):
         if not pkg.ispkg:
@@ -83,6 +83,6 @@ def load_agents(base_path='agents'):
         if definition:
             AgentRegistry.register(agent_name, definition, meta)
         else:
-            print(f"[PyPAC-MV] ⚠️ Агент {agent_name} не зарегистрирован (нет классов)")
+            print(f"[PyPAC-MV WARNING] load_agents ⚠️ Агент {agent_name} не зарегистрирован (нет классов)")
     AgentRegistry.instantiate_all()
     return AgentRegistry.agents

@@ -1,125 +1,123 @@
-import qtawesome as qta
-
-from PyQt6.QtWidgets import QMainWindow, QTabWidget, QWidget, QVBoxLayout, QLabel, QFrame, QPushButton, QHBoxLayout, QSizePolicy
-from PyQt6.QtCore import Qt, QSize, QPropertyAnimation
-
-from config.theme.ui_style import UiStyle
-from core.loader import AgentRegistry
-
-from views.window.title_bar import TitleBar
-from views.window.resources import (APP_TITLE)
+from PyQt6.QtWidgets import QWidget, QTabWidget, QVBoxLayout, QLabel, QFrame, QPushButton, QHBoxLayout, QSizePolicy, QStackedWidget
+from PyQt6.QtCore import Qt, QSize
+from PyQt6.QtGui import QIcon, QPixmap
 
 class Dashboard(QWidget):
-    def __init__(self, agents: dict, AgentRegistry):
+    def __init__(self, agents, registry=None):
+        """
+        Dashboard принимает agents и опционально registry.
+        - agents может быть dict {name: agent} или list of agent instances.
+        - registry может иметь attribute 'metadata' (dict) или метод get_metadata().
+        """
         super().__init__()
-        style = UiStyle(self)
+        self.registry = registry
+        # normalize agents to ordered list of (name, agent)
+        self.agents_map = {}
+        if isinstance(agents, dict):
+            for k, v in agents.items():
+                self.agents_map[k] = v
+        elif isinstance(agents, (list, tuple)):
+            for a in agents:
+                # try to determine name
+                name = getattr(a, 'name', None) or (getattr(a, 'presentation', None) and getattr(a.presentation, 'windowTitle', None) and a.presentation.windowTitle()) or str(id(a))
+                self.agents_map[name] = a
+        else:
+            raise ValueError("Unsupported agents type")
 
-        self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
-
-        """Боковая панель (всегда видна)"""
-        self.side_menu = QFrame(self)
-        self.side_menu.setStyleSheet(f"border: 0.5px solid black;")
-        self.side_menu.setFixedWidth(45)
-
-        """Контент боковой панели"""
-        layout_menu = QVBoxLayout()
-        layout_menu.setContentsMargins(0, 0, 0, 0)
-        layout_menu.setSpacing(0)
-
-        """Добавляем кнопки с иконками для перехода между табами"""
-        for name, meta in AgentRegistry.metadata.items():
-            item_btn = self._make_icon_button(meta.get('icon', 'fa5s.cog'), name)
-            layout_menu.addWidget(item_btn)
-
-        """Добавляем область работы для проектов и ЧТО_ТО ЕЩЕ"""
-        self.nav_project = QTabWidget()
-        self.nav_project.setFixedWidth(250)
-        self.nav_project.setDocumentMode(True)
-
-        self.nav_project.widget = QWidget()
-        layout = QVBoxLayout(self.nav_project.widget)
-        project = self._create_agent_tab(self.nav_project.widget, name)
-        label = 'Проекты'
-        self.nav_project.addTab(project, label)
-
-        """Добавляем табы для агентов"""
-        self.agents = agents
-        self.tabs = QTabWidget()
-        self.tabs.setTabPosition(QTabWidget.TabPosition.North)
-        self.tabs.setDocumentMode(True)
-
-        self.main_widget = QMainWindow(self)
-        self.main_widget.setFocus()
-
-        for name, agent in self.agents.items():
-            tab = self._create_agent_tab(agent, name)
-            label = agent.presentation.windowTitle() if hasattr(agent.presentation, 'windowTitle') else name
-            self.tabs.addTab(tab, label)
-        # self.main_widget.setCentralWidget(self.tabs)
-
-        layout_menu.addStretch()
-        self.side_menu.setLayout(layout_menu)
-
-        """Заголовок"""
-        self.title_bar = TitleBar(self)
-
-        """Контент справа"""
-        self.content = QLabel("Привет! Это окно с **боковой панелью**, которая всегда видна.")
-        self.content.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        """Объединяем боковую панель и контент"""
-        content_layout = QHBoxLayout()
-        content_layout.setContentsMargins(0, 0, 0, 0)
-        content_layout.setSpacing(0)
-        content_layout.addWidget(self.side_menu)
-        content_layout.addWidget(self.nav_project)
-        content_layout.addWidget(self.tabs)
-
-        """Общий layout"""
-        main_layout = QVBoxLayout()
-        main_layout.setContentsMargins(0, 0, 0, 0)
-        main_layout.setSpacing(0)
-        main_layout.addWidget(self.title_bar)
-        main_layout.addLayout(content_layout)
-
-        self.setLayout(main_layout)
-
-        """Разворачиваем окно на весь экран"""
-        screen_geometry = self.screen().availableGeometry()
-        self.setGeometry(screen_geometry)
-
-    def _create_agent_tab(self, agent, name):
-        widget = QWidget()
-        layout = QVBoxLayout(widget)
-        try:
-            if hasattr(agent.presentation, 'widget'):
-                layout.addWidget(agent.presentation.widget)
+        # get metadata mapping
+        self.meta = {}
+        if registry is not None:
+            if hasattr(registry, 'metadata'):
+                self.meta = registry.metadata
+            elif hasattr(registry, 'get_metadata'):
+                try:
+                    self.meta = registry.get_metadata()
+                except Exception:
+                    self.meta = {}
+        # build UI
+        self.setWindowTitle("MindNavigator")
+        self.resize(1000, 700)
+        main_layout = QHBoxLayout(self)
+        # side menu
+        self.side_menu = QFrame()
+        self.side_menu.setFixedWidth(72)
+        self.side_menu.setObjectName("side_menu")
+        side_layout = QVBoxLayout(self.side_menu)
+        side_layout.setContentsMargins(6, 6, 6, 6)
+        side_layout.setSpacing(8)
+        # central area with tabs (stacked)
+        self.stack = QStackedWidget()
+        # determine order
+        ordered = self._ordered_agents()
+        self.btn_map = {}
+        for idx, (name, agent) in enumerate(ordered):
+            meta = self.meta.get(name, {})
+            title = meta.get('title', name)
+            icon_text = meta.get('icon', None)
+            # create tab content
+            content = QWidget()
+            content_layout = QVBoxLayout(content)
+            # prefer agent.presentation.widget or centralWidget()
+            w = None
+            if hasattr(agent, 'presentation') and hasattr(agent.presentation, 'widget'):
+                w = agent.presentation.widget
             else:
-                cw = getattr(agent.presentation, 'centralWidget', lambda: None)()
-                if cw is not None:
-                    layout.addWidget(cw)
-                else:
-                    layout.addWidget(QLabel(f"⚠️ Агент {name} не имеет представления", alignment=Qt.AlignmentFlag.AlignCenter))
-        except Exception:
-            layout.addWidget(QLabel(f"⚠️ Ошибка отображения агента {name}", alignment=Qt.AlignmentFlag.AlignCenter))
-        return widget
+                # try centralWidget() if available
+                try:
+                    cw = agent.presentation.centralWidget() if hasattr(agent.presentation, 'centralWidget') else None
+                    w = cw
+                except Exception:
+                    w = None
+            if w is not None:
+                content_layout.addWidget(w)
+            else:
+                content_layout.addWidget(QLabel(f"Agent {title} has no view"))
+            self.stack.addWidget(content)
+            # create side button
+            btn = QPushButton()
+            btn.setCheckable(True)
+            btn.setToolTip(title)
+            btn.setFixedSize(56, 56)
+            if icon_text:
+                btn.setText(icon_text)
+            btn.clicked.connect(lambda _, i=idx: self.switch_to_index(i))
+            side_layout.addWidget(btn)
+            self.btn_map[name] = btn
+        side_layout.addStretch()
+        main_layout.addWidget(self.side_menu)
+        main_layout.addWidget(self.stack, 1)
+        # default select first
+        if self.stack.count() > 0:
+            self.switch_to_index(0)
 
-    def _make_icon_button(self, icon_name, tooltip):
-        """Создание кнопки с иконкой"""
-        icon = qta.icon(icon_name, color="white")
-        btn = QPushButton()
-        btn.setIcon(icon)
-        btn.setIconSize(QSize(24, 24))
-        btn.setFixedSize(45, 45)  # квадратные кнопки
-        btn.setToolTip(tooltip)  # подсказка при наведении
-        btn.setStyleSheet("""
-                    QPushButton {
-                        background: transparent;
-                        border: none;
-                    }
-                    QPushButton:hover {
-                        background-color: #3d3d3d;
-                        border-radius: 8px;
-                    }
-                """)
-        return btn
+    def _ordered_agents(self):
+        # return list of tuples (name, agent) ordered by meta 'order' if present
+        items = list(self.agents_map.items())
+        def order_key(item):
+            name, agent = item
+            meta = self.meta.get(name, {})
+            return meta.get('order', 1000)
+        items.sort(key=order_key)
+        return items
+
+    def switch_to_agent(self, agent_name):
+        # switch to tab corresponding to agent_name
+        ordered = self._ordered_agents()
+        for idx, (name, _) in enumerate(ordered):
+            if name == agent_name:
+                self.switch_to_index(idx)
+                return True
+        return False
+
+    def switch_to_index(self, index):
+        # update buttons checked state
+        for btn in self.btn_map.values():
+            btn.setChecked(False)
+        # find name for index
+        ordered = self._ordered_agents()
+        if 0 <= index < len(ordered):
+            name = ordered[index][0]
+            btn = self.btn_map.get(name)
+            if btn:
+                btn.setChecked(True)
+        self.stack.setCurrentIndex(index)
