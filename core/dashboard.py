@@ -2,15 +2,27 @@ from PyQt6.QtWidgets import QWidget, QTabWidget, QVBoxLayout, QLabel, QFrame, QP
 from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QIcon, QPixmap
 
+from config.theme.ui_style import UiStyle
+from core.loader import AgentRegistry
+
+from views.window.title_bar import TitleBar
+from views.window.resources import (APP_TITLE)
+
 class Dashboard(QWidget):
-    def __init__(self, agents, registry=None):
+    def __init__(self, agents: dict, AgentRegistry):
+
         """
         Dashboard принимает agents и опционально registry.
         - agents может быть dict {name: agent} или list of agent instances.
         - registry может иметь attribute 'metadata' (dict) или метод get_metadata().
         """
+
         super().__init__()
-        self.registry = registry
+        style = UiStyle(self)
+        self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
+
+
+        self.registry = AgentRegistry
         # normalize agents to ordered list of (name, agent)
         self.agents_map = {}
         if isinstance(agents, dict):
@@ -26,20 +38,25 @@ class Dashboard(QWidget):
 
         # get metadata mapping
         self.meta = {}
-        if registry is not None:
-            if hasattr(registry, 'metadata'):
-                self.meta = registry.metadata
-            elif hasattr(registry, 'get_metadata'):
+        if AgentRegistry is not None:
+            if hasattr(AgentRegistry, 'metadata'):
+                self.meta = AgentRegistry.metadata
+            elif hasattr(AgentRegistry, 'get_metadata'):
                 try:
-                    self.meta = registry.get_metadata()
+                    self.meta = AgentRegistry.get_metadata()
                 except Exception:
                     self.meta = {}
         # build UI
         self.setWindowTitle("MindNavigator")
-        self.resize(1000, 700)
+        #self.resize(1000, 700)
+
         main_layout = QHBoxLayout(self)
+        self.title_bar = TitleBar(self)
+        main_layout.addWidget(self.title_bar)
+
         # side menu
         self.side_menu = QFrame()
+
         self.side_menu.setFixedWidth(72)
         self.side_menu.setObjectName("side_menu")
         side_layout = QVBoxLayout(self.side_menu)
@@ -86,6 +103,7 @@ class Dashboard(QWidget):
         side_layout.addStretch()
         main_layout.addWidget(self.side_menu)
         main_layout.addWidget(self.stack, 1)
+
         # default select first
         if self.stack.count() > 0:
             self.switch_to_index(0)
