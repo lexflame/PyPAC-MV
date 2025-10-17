@@ -7,6 +7,9 @@
 [![PyQt6](https://img.shields.io/badge/PyQt6-6.x-purple.svg)](https://riverbankcomputing.com/software/pyqt/) 
 [![QtAwesome](https://img.shields.io/badge/QtAwesome-1.x-orange.svg)](https://github.com/spyder-ide/qtawesome)
 
+![PyCharm](https://img.shields.io/badge/IDE-PyCharm-ff69b4?logo=jetbrains&logoColor=white)
+
+
 **MindNavigator** is a cross-platform desktop app for managing tasks, maps, and notes — perfect for creative world-building projects. Organize, sync, and visualize your ideas with a ToDoist-inspired interface.
 
 # ⚙️ Pattern PyPAC-MV
