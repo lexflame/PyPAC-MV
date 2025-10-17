@@ -9,6 +9,17 @@
 
 **MindNavigator** is a cross-platform desktop app for managing tasks, maps, and notes — perfect for creative world-building projects. Organize, sync, and visualize your ideas with a ToDoist-inspired interface.
 
+# ⚙️ Pattern PyPAC-MV
+
+[![Python](https://img.shields.io/badge/python-3.11%2B-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux-lightgrey)]()
+[![Status](https://img.shields.io/badge/status-active-success.svg)]()
+[![SQLite](https://img.shields.io/badge/DB-SQLite3-orange.svg?logo=sqlite)]()
+[![UI](https://img.shields.io/badge/UI-CLI%20%7C%20TUI-lightblue)]()
+
+> 🧠 PyPAC-MV — it is a modular agent system in Python. I decided to try to make my own architecture pattern, on the one hand it's interesting, on the other hand the opportunity to quickly and extensively learn Python. This architecture pattern is based on the **MVC/MV\*** pattern, as well as with the addition of **PAC**, this architecture is designed for extensible workspaces, task automation, and interactive agents..
+
 ---
 
 ## ✨ Features
