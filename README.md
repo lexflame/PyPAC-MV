@@ -3,7 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE) 
 [![Release](https://img.shields.io/github/v/release/your-username/MindNavigator?color=blue)](https://github.com/your-username/MindNavigator/releases) 
 [![Platform](https://img.shields.io/badge/Platform-Windows%20|%20macOS%20|%20Linux-lightgrey)](#) 
-[![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/) 
+[![Python](https://img.shields.io/badge/python-3.11%2B-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![PyQt6](https://img.shields.io/badge/PyQt6-6.x-purple.svg)](https://riverbankcomputing.com/software/pyqt/) 
 [![QtAwesome](https://img.shields.io/badge/QtAwesome-1.x-orange.svg)](https://github.com/spyder-ide/qtawesome)
 
