@@ -12,6 +12,12 @@
 
 **MindNavigator** is a cross-platform desktop app for managing tasks, maps, and notes — perfect for creative world-building projects. Organize, sync, and visualize your ideas with a ToDoist-inspired interface.
 
+![Creativ](https://img.shields.io/badge/Tag-Creativ-4caf50?style=flat&logo=appveyor&logoColor=white)
+![Game](https://img.shields.io/badge/Tag-Game-2196f3?style=flat&logo=unity&logoColor=white)
+![Maps](https://img.shields.io/badge/Tag-Maps-ff9800?style=flat&logo=openstreetmap&logoColor=white)
+![CreatorWorld](https://img.shields.io/badge/Tag-CreatorWorld-e91e63?style=flat&logo=planet&logoColor=white)
+
+
 # ⚙️ Pattern PyPAC-MV
 
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
