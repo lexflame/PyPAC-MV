@@ -18,7 +18,7 @@
 [![SQLite](https://img.shields.io/badge/DB-SQLite3-orange.svg?logo=sqlite)]()
 [![UI](https://img.shields.io/badge/UI-CLI%20%7C%20TUI-lightblue)]()
 
-> 🧠 PyPAC-MV — it is a modular agent system in Python. I decided to try to make my own architecture pattern, on the one hand it's interesting, on the other hand the opportunity to quickly and extensively learn Python. This architecture pattern is based on the **MVC/MV\*** pattern, as well as with the addition of **PAC**, this architecture is designed for extensible workspaces, task automation, and interactive agents..
+> 🧠 PyPAC-MV — it is a modular agent system in Python. I decided to try to make my own architecture pattern, on the one hand it's interesting, on the other hand the opportunity to quickly and extensively learn Python. This architecture pattern is based on the **MVC/MV\** pattern, as well as with the addition of **PAC**, this architecture is designed for extensible workspaces, task automation, and interactive agents..
 
 ---
 
