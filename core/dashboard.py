@@ -90,11 +90,38 @@ class Dashboard(QWidget):
 
         """Выводим табы агентов"""
         """BEGIN"""
-
+        self.stack = QStackedWidget()
+        # # determine order
+        ordered = self._ordered_agents()
+        self.btn_map = {}
+        for idx, (name, agent) in enumerate(ordered):
+             meta = self.meta.get(name, {})
+             title = meta.get('title', name)
+             icon_text = meta.get('icon', None)
+             # create tab content
+             work_area = QWidget()
+             work_area_layout = QVBoxLayout(work_area)
+             # prefer agent.presentation.widget or centralWidget()
+             w = None
+             if hasattr(agent, 'presentation') and hasattr(agent.presentation, 'widget'):
+                 w = agent.presentation.widget
+             else:
+                 # try centralWidget() if available
+                 try:
+                     cw = agent.presentation.centralWidget() if hasattr(agent.presentation, 'centralWidget') else None
+                     w = cw
+                 except Exception:
+                     w = None
+             if w is not None:
+                 work_area_layout.addWidget(w)
+             else:
+                 work_area_layout.addWidget(QLabel(f"Agent {title} has no view"))
+             self.stack.addWidget(work_area)
         """END"""
 
         content_layout.addWidget(self.side_menu)
         content_layout.addWidget(self.nav_project)
+        content_layout.addWidget(self.stack)
         #content_layout.addWidget(self.tabs)
 
         """Общий layout"""
