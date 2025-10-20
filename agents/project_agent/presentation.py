@@ -21,7 +21,7 @@ class ProjectPresentation(BasePresentation):
 
         # Creation area (hidden by default)
         self.title_input = QLineEdit()
-        self.title_input.setPlaceholderText("Task title")
+        self.title_input.setPlaceholderText("Title")
         self.due_date = QDateEdit()
         self.due_date.setCalendarPopup(True)
         self.due_date.setDate(QDate.currentDate())

@@ -1,7 +1,8 @@
 
 from core.base import BaseControl
-from PyQt6.QtWidgets import QListWidgetItem, QMessageBox
-from PyQt6.QtCore import QDate
+from PyQt6.QtWidgets import QListWidgetItem, QMessageBox, QStyledItemDelegate
+from PyQt6.QtCore import Qt, QDate, QRect
+from PyQt6.QtGui import QPainter, QBrush, QColor, QFont
 from datetime import datetime
 
 class TaskControl(BaseControl):
@@ -14,8 +15,10 @@ class TaskControl(BaseControl):
         self.presentation.filter_combo.currentTextChanged.connect(self.refresh_list)
         self.presentation.list_widget.itemDoubleClicked.connect(self.on_item_double_clicked)
         # initial load
+        self.presentation.list_widget.setItemDelegate(ViewDelegate())
         self.refresh_list()
         self.toggle_new_area()
+
 
     def toggle_new_area(self):
         # show/hide creation widgets
@@ -49,7 +52,7 @@ class TaskControl(BaseControl):
                 break
         self.refresh_list()
 
-    def refresh_list(self):
+    def refresh_list(self, list_widget=None):
         filter_type = self.presentation.filter_combo.currentText()
         search = self.presentation.search_input.text().strip() or None
         rows = self.abstraction.get_tasks(filter_type=filter_type, search=search)
@@ -60,11 +63,32 @@ class TaskControl(BaseControl):
             date_label = due if due else "No due date"
             # Add separator when date changes
             if date_label != last_date:
-                sep = QListWidgetItem(f"--- {date_label} ---")
-                sep.setFlags(sep.flags() & ~ (sep.flags()))  # non-selectable
+                sep = QListWidgetItem(f"{date_label}")
+                sep.setFlags(Qt.ItemFlag.ItemIsEnabled)
+                sep.setData(Qt.ItemDataRole.UserRole, "separator_date")
                 self.presentation.list_widget.addItem(sep)
                 last_date = date_label
             text = f"[{r['priority']}] {r['title']}"
             item = QListWidgetItem(text)
             item.setData(256, r['id'])
             self.presentation.list_widget.addItem(item)
+
+class ViewDelegate(QStyledItemDelegate):
+    def paint(self, painter, option, index):
+        item_class = index.data(Qt.ItemDataRole.UserRole)
+        if item_class == "separator_date":
+            painter.save()
+            painter.fillRect(option.rect, QColor(45, 45, 45))
+            #painter.setPen(QColor("white"))
+            font = QFont()
+            font.setBold(True)
+            painter.setFont(font)
+            text = index.data(Qt.ItemDataRole.DisplayRole)
+            padding = 10
+            text_rect = QRect(option.rect)
+            text_rect.adjust(padding, 0, -padding, 0)
+            painter.drawText(text_rect, Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft, text)
+            painter.restore()
+        else:
+            super().paint(painter, option, index)
+

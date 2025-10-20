@@ -1,6 +1,7 @@
 
 from core.base import BasePresentation
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QTextEdit, QListWidget, QLineEdit, QLabel, QHBoxLayout, QComboBox, QDateEdit
+from PyQt6.QtGui import QPainter, QColor, QFont
 from PyQt6.QtCore import Qt, QDate
 
 class TaskPresentation(BasePresentation):
@@ -44,6 +45,30 @@ class TaskPresentation(BasePresentation):
 
         # List of tasks
         self.list_widget = QListWidget()
+        self.list_widget.setStyleSheet("""
+            QListWidget {
+                color: #ecf0f1;
+                border: none;
+            }
+            QListWidget::item[data-role="separator_date"] {
+                background-color: #FFF !important;
+                color: white;
+            }
+            QListWidget::item {
+                background-color: #2c3e50;
+                padding: 10px;
+                border-radius: 4px;
+                margin: 10px;
+            }
+            QListWidget::item:hover {
+                background-color: #3498db;
+                animation: hover-effect 0.3s ease;
+            }
+            QListWidget::item:selected {
+                background-color: #34495e;  /* Цвет выделения */
+                color: white;
+            }
+        """)
 
         # Assemble
         self.layout.addLayout(toolbar)
