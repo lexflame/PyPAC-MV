@@ -45,6 +45,7 @@ class TaskPresentation(BasePresentation):
 
         # List of tasks
         self.list_widget = QListWidget()
+        self.list_widget.setFixedWidth(250) # Ширина столбца вывода задач
         self.list_widget.setStyleSheet("""
             QListWidget {
                 color: #ecf0f1;
