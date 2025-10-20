@@ -2,6 +2,7 @@ import sys, os
 import tkinter as tk
 
 from PyQt6.QtWidgets import QApplication
+from PyQt6.QtGui import QIcon
 from core.loader import load_agents, AgentRegistry
 from core.dashboard import Dashboard
 from core.database import DatabaseManager
@@ -14,6 +15,7 @@ def main():
     if root not in sys.path:
         sys.path.insert(0, root)
     app = QApplication(sys.argv)
+    app.setWindowIcon(QIcon("icon.png"))
     db = DatabaseManager(os.path.join(root, "pypac.db"))
     eventbus = EventBus()
     agents = load_agents('agents')
