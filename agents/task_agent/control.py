@@ -1,4 +1,6 @@
 
+from rich import print
+from rich.pretty import pprint
 from core.base import BaseControl
 from PyQt6.QtWidgets import QListWidgetItem, QMessageBox, QStyledItemDelegate
 from PyQt6.QtCore import Qt, QDate, QRect
@@ -68,10 +70,20 @@ class TaskControl(BaseControl):
                 sep.setData(Qt.ItemDataRole.UserRole, "separator_date")
                 self.presentation.list_widget.addItem(sep)
                 last_date = date_label
-            text = f"[{r['priority']}] {r['title']}"
-            item = QListWidgetItem(text)
-            item.setData(256, r['id'])
-            self.presentation.list_widget.addItem(item)
+            priority = r['priority']
+            title = r['title']
+            self.setViewTask( self,title=title, priority=priority)
+
+    def setViewTask(self,*args, **kwargs):
+        # task['priority']
+        # priority = f"{task['priority']}"
+        # title = f"{task['title']}"
+        # print(kwargs['title'])
+        self.title_box = QListWidgetItem(f"{kwargs['title']}");
+        # self.priority_box = QListWidgetItem();
+        # self.box_task = QListWidget()
+        # self.box_task.addItem(title_box)
+        # self.presentation.list_widget.addItem(box_task)
 
 class ViewDelegate(QStyledItemDelegate):
     def paint(self, painter, option, index):
