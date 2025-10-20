@@ -27,12 +27,6 @@ class Dashboard(QWidget):
         layout_menu.setContentsMargins(0, 0, 0, 0)
         layout_menu.setSpacing(0)
 
-        """Добавляем кнопки с иконками для перехода между табами"""
-        for name, meta in AgentRegistry.metadata.items():
-            """todo добавить переход на tab соответствующий агенту """
-            item_btn = self._make_icon_button(meta.get('icon', 'fa5s.cog'), name)
-            layout_menu.addWidget(item_btn)
-
         """Добавляем область работы для проектов и ЧТО_ТО ЕЩЕ"""
         self.nav_project = QTabWidget()
         self.nav_project.setFixedWidth(250)
@@ -72,9 +66,6 @@ class Dashboard(QWidget):
                     self.meta = AgentRegistry.get_metadata()
                 except Exception:
                     self.meta = {}
-
-        layout_menu.addStretch()
-        self.side_menu.setLayout(layout_menu)
 
         """Заголовок"""
         self.title_bar = TitleBar(self)
@@ -117,6 +108,12 @@ class Dashboard(QWidget):
              else:
                  work_area_layout.addWidget(QLabel(f"Agent {title} has no view"))
              self.stack.addWidget(work_area)
+             """Добавляем кнопки с иконками для перехода между табами"""
+             item_btn = self._make_icon_button(meta.get('icon', None), meta.get('title', name))
+             item_btn.clicked.connect(lambda _, i=idx: self.switch_to_index(i))
+             layout_menu.addWidget(item_btn)
+        layout_menu.addStretch()
+        self.side_menu.setLayout(layout_menu)
         """END"""
 
         content_layout.addWidget(self.side_menu)
