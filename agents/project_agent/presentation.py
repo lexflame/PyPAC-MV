@@ -3,7 +3,7 @@ from core.base import BasePresentation
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QTextEdit, QListWidget, QLineEdit, QLabel, QHBoxLayout, QComboBox, QDateEdit
 from PyQt6.QtCore import Qt, QDate
 
-class TaskPresentation(BasePresentation):
+class ProjectPresentation(BasePresentation):
     def __init__(self):
         super().__init__()
         # We'll expose .widget for embedding into Dashboard

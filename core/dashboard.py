@@ -136,6 +136,7 @@ class Dashboard(QWidget):
 
     def _create_agent_tab(self, agent, name):
         widget = QWidget()
+        widget.setStyleSheet("background-color: #3a3a3a;border: 1px solid #555;")
         layout = QVBoxLayout(widget)
         try:
             if hasattr(agent.presentation, 'widget'):

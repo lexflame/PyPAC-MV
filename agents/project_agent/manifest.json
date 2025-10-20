@@ -1,0 +1,11 @@
+
+{
+  "name": "project_agent",
+  "title": "Project Agent",
+  "description": "Пример агент-проекты",
+  "version": "1.1",
+  "icon": "fa5s.project-diagram",
+  "autoload": true,
+  "order": 5,
+  "dependencies": []
+}

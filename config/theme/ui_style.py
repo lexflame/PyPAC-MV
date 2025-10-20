@@ -56,7 +56,7 @@ class UiStyle:
                 background-color: #3a3a3a;
                 border: 1px solid #555;
                 padding: 6px 12px;
-                border-radius: 4px;
+                border-radius: 0px;
             }}
             QPushButton:hover {{
                 background-color: #4a4a4a;
