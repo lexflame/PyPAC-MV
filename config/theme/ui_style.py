@@ -54,12 +54,11 @@ class UiStyle:
             }}
             QPushButton {{
                 background-color: #3a3a3a;
-                border: 1px solid #555;
                 padding: 6px 12px;
                 border-radius: 0px;
             }}
             QPushButton:hover {{
-                background-color: #4a4a4a;
+                background-color: #3a3a3a;
             }}
             QLineEdit, QTextEdit {{
                 background-color: #1e1e1e;

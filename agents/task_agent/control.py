@@ -87,8 +87,8 @@ class TaskControl(BaseControl):
                 priority=priority,
                 deadline=due
             )
-            item.setSizeHint(QSize(0, 70))
-            task_widget.setMinimumHeight(70)
+            item.setSizeHint(QSize(0, 80))
+            task_widget.setMinimumHeight(40)
 
 
             # Привязываем виджет к элементу
@@ -124,16 +124,17 @@ class TaskWidget(QWidget):
     def setupUi(self, title, priority, deadline):
         self.setMinimumHeight(70)
         self.setMaximumHeight(80)
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
         # Основной горизонтальный макет
         layout = QHBoxLayout(self)
-        layout.setContentsMargins(10, 8, 10, 8)  # Увеличили отступы
+        layout.setContentsMargins(10, 8, 20, 8)  # Увеличили отступы
 
-        layout.setSpacing(5)  # Расстояние между элементами
+        layout.setSpacing(2)  # Расстояние между элементами
 
         # Левая часть: текст задачи
         text_layout = QVBoxLayout()
-        text_layout.setSpacing(20)  # Отступ между строками текста
+        text_layout.setContentsMargins(0, 0, 0, 0)  # Убираем внешние отступы
+        text_layout.setSpacing(0) # Маленький зазор между элементами
 
         text_layout = QVBoxLayout()
 
@@ -144,39 +145,59 @@ class TaskWidget(QWidget):
         if (priority == 'high'):
             priority_label = "🔥"
 
-        box_label = QLabel(f" {priority_label} <span style='color:#aaa;'>{deadline}</span>")
-        box_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        box_label = QLabel(f" {priority_label} {title}")
+        box_label.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Preferred)
         box_label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
         text_layout.addWidget(box_label)
 
-        title_label = QLabel(f"<b>{title}</b>")
-        title_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        title_label = QLabel(f"<b></b>")
+        title_label.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Preferred)
         title_label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
-        text_layout.addWidget(title_label)
 
-        # Правая часть: кнопка действия
-        icon = qta.icon("ei.check", color="white")
-        btn = QPushButton()
-        btn.setIcon(icon)
-        btn.setIconSize(QSize(24, 24))
-        btn.setFixedWidth(25)
-        btn.setFixedHeight(25)
-        btn.setToolTip('Выполнить')  # подсказка при наведении
-        btn.setStyleSheet("""
-                            QPushButton {
-                                background: transparent;
-                                border: none;
-                            }
-                            QPushButton:hover {
-                                background-color: #3d3d3d;
-                                border-radius: 8px;
-                            }
-                        """)
+        # Кнопка действия 'Подробности'
+        icon = qta.icon("msc.more", color="#aaa")
+        btn_more = QPushButton()
+        btn_more.setIcon(icon)
+        btn_more.setIconSize(QSize(24, 24))
+        btn_more.setFixedSize(25, 25)
+        btn_more.setToolTip('Подробности')  # подсказка при наведении
+        btn_more.setMinimumSize(25, 25)
+
+        text_layout.setContentsMargins(0, 0, 0, 0)  # Убираем отступы
+        text_layout.setSpacing(0)
+        text_layout.addWidget(title_label)
+        text_layout.addWidget(btn_more, alignment=Qt.AlignmentFlag.AlignCenter | Qt.AlignLeft)
 
         # Добавляем в основной макет
         layout.addLayout(text_layout, 1)  # Вес 1 (растягивается)
-        layout.addWidget(btn, alignment=Qt.AlignmentFlag.AlignCenter|Qt.AlignRight)  # Вес 0 (фиксированный размер)
+
+        # Кнопка действия 'Выполнить'
+        icon = qta.icon("ei.check", color="#aaa")
+        btn_check = QPushButton()
+        btn_check.setIcon(icon)
+        btn_check.setIconSize(QSize(24, 24))
+        btn_check.setFixedSize(25, 25)
+        btn_check.setToolTip('Выполнить')  # подсказка при наведении
+
+        # Кнопка действия 'Редактировать'
+        icon = qta.icon("fa5s.edit", color="#aaa")
+        btn_edit = QPushButton()
+        btn_edit.setIcon(icon)
+        btn_edit.setIconSize(QSize(24, 24))
+        btn_edit.setFixedSize(25, 25)
+        btn_edit.setToolTip('Редактировать')  # подсказка при наведении
+
+        # Кнопка действия 'Удалить'
+        icon = qta.icon("mdi.delete", color="#aaa")
+        btn_delete = QPushButton()
+        btn_delete.setIcon(icon)
+        btn_delete.setIconSize(QSize(24, 24))
+        btn_delete.setFixedSize(25, 25)
+        btn_delete.setToolTip('Удалить')  # подсказка при наведении
 
         # Устанавливаем минимальный размер для виджета
         self.setMinimumHeight(60)
+        layout.addWidget(btn_edit, alignment=Qt.AlignmentFlag.AlignCenter | Qt.AlignRight)  # Вес 0 (фиксированный размер)
+        layout.addWidget(btn_check, alignment=Qt.AlignmentFlag.AlignCenter | Qt.AlignRight)  # Вес 0 (фиксированный размер)
+        layout.addWidget(btn_delete, alignment=Qt.AlignmentFlag.AlignCenter | Qt.AlignRight)  # Вес 0 (фиксированный размер)
 
