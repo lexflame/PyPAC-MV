@@ -45,7 +45,8 @@ class TaskPresentation(BasePresentation):
 
         # List of tasks
         self.list_widget = QListWidget()
-        self.list_widget.setFixedWidth(250) # Ширина столбца вывода задач
+        # self.list_widget.setFixedWidth(250) # Ширина столбца вывода задач
+
         self.list_widget.setStyleSheet("""
             QListWidget {
                 color: #ecf0f1;
@@ -54,12 +55,12 @@ class TaskPresentation(BasePresentation):
             QListWidget::item[data-role="separator_date"] {
                 background-color: #FFF !important;
                 color: white;
+                width: 50%;
             }
             QListWidget::item {
                 background-color: #2c3e50;
-                padding: 10px;
                 border-radius: 4px;
-                margin: 10px;
+                margin: 5px;
             }
             QListWidget::item:hover {
                 background-color: #3498db;

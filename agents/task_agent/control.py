@@ -1,9 +1,15 @@
-
+import sys
+import qtawesome as qta
 from rich import print
 from rich.pretty import pprint
 from core.base import BaseControl
-from PyQt6.QtWidgets import QListWidgetItem, QMessageBox, QStyledItemDelegate
-from PyQt6.QtCore import Qt, QDate, QRect
+from PyQt6.QtWidgets import (
+    QListWidgetItem, QMessageBox, QStyledItemDelegate,
+    QListWidget, QApplication, QWidget,
+    QVBoxLayout, QHBoxLayout, QLabel,
+    QPushButton, QFrame, QSizePolicy
+)
+from PyQt6.QtCore import Qt, QDate, QRect, QSize
 from PyQt6.QtGui import QPainter, QBrush, QColor, QFont
 from datetime import datetime
 
@@ -53,6 +59,7 @@ class TaskControl(BaseControl):
                 self.abstraction.update_task(task_id, status=new_status)
                 break
         self.refresh_list()
+        item.setSizeHint(task_widget.sizeHint())  # Важно: задаём размер
 
     def refresh_list(self, list_widget=None):
         filter_type = self.presentation.filter_combo.currentText()
@@ -72,18 +79,22 @@ class TaskControl(BaseControl):
                 last_date = date_label
             priority = r['priority']
             title = r['title']
-            self.setViewTask( self,title=title, priority=priority)
 
-    def setViewTask(self,*args, **kwargs):
-        # task['priority']
-        # priority = f"{task['priority']}"
-        # title = f"{task['title']}"
-        # print(kwargs['title'])
-        self.title_box = QListWidgetItem(f"{kwargs['title']}");
-        # self.priority_box = QListWidgetItem();
-        # self.box_task = QListWidget()
-        # self.box_task.addItem(title_box)
-        # self.presentation.list_widget.addItem(box_task)
+            # Создаём элемент списка
+            item = QListWidgetItem()
+            task_widget = TaskWidget(
+                title=title,
+                priority=priority,
+                deadline=due
+            )
+            item.setSizeHint(QSize(0, 70))
+            task_widget.setMinimumHeight(70)
+
+
+            # Привязываем виджет к элементу
+            self.presentation.list_widget.addItem(item)
+            self.presentation.list_widget.setItemWidget(item, task_widget)
+            # self.presentation.list_widget.setUniformItemSizes(False)
 
 class ViewDelegate(QStyledItemDelegate):
     def paint(self, painter, option, index):
@@ -103,4 +114,69 @@ class ViewDelegate(QStyledItemDelegate):
             painter.restore()
         else:
             super().paint(painter, option, index)
+
+class TaskWidget(QWidget):
+    def __init__(self, title, priority, deadline):
+        super().__init__()
+        self.setupUi(title, priority, deadline)
+        self.setStyleSheet(f"""QWidget {{color: #ddd;background-color: transparent !important;}}""")
+
+    def setupUi(self, title, priority, deadline):
+        self.setMinimumHeight(70)
+        self.setMaximumHeight(80)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        # Основной горизонтальный макет
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(10, 8, 10, 8)  # Увеличили отступы
+
+        layout.setSpacing(5)  # Расстояние между элементами
+
+        # Левая часть: текст задачи
+        text_layout = QVBoxLayout()
+        text_layout.setSpacing(20)  # Отступ между строками текста
+
+        text_layout = QVBoxLayout()
+
+        if(priority == 'low'):
+            priority_label = "🔵"
+        if (priority == 'normal'):
+            priority_label = "🔴"
+        if (priority == 'high'):
+            priority_label = "🔥"
+
+        box_label = QLabel(f" {priority_label} <span style='color:#aaa;'>{deadline}</span>")
+        box_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        box_label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
+        text_layout.addWidget(box_label)
+
+        title_label = QLabel(f"<b>{title}</b>")
+        title_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        title_label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
+        text_layout.addWidget(title_label)
+
+        # Правая часть: кнопка действия
+        icon = qta.icon("ei.check", color="white")
+        btn = QPushButton()
+        btn.setIcon(icon)
+        btn.setIconSize(QSize(24, 24))
+        btn.setFixedWidth(25)
+        btn.setFixedHeight(25)
+        btn.setToolTip('Выполнить')  # подсказка при наведении
+        btn.setStyleSheet("""
+                            QPushButton {
+                                background: transparent;
+                                border: none;
+                            }
+                            QPushButton:hover {
+                                background-color: #3d3d3d;
+                                border-radius: 8px;
+                            }
+                        """)
+
+        # Добавляем в основной макет
+        layout.addLayout(text_layout, 1)  # Вес 1 (растягивается)
+        layout.addWidget(btn, alignment=Qt.AlignmentFlag.AlignCenter|Qt.AlignRight)  # Вес 0 (фиксированный размер)
+
+        # Устанавливаем минимальный размер для виджета
+        self.setMinimumHeight(60)
 
