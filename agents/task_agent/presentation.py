@@ -37,7 +37,7 @@ class TaskPresentation(BasePresentation):
         # Filter
         filter_layout = QHBoxLayout()
         self.filter_combo = QComboBox()
-        self.filter_combo.addItems(["all", "plan", "done", "overdue"])
+        self.filter_combo.addItems(["plan", "overdue", "all", "done"])
         filter_layout.addWidget(QLabel("Filter:"))
         filter_layout.addWidget(self.filter_combo)
         filter_layout.addStretch()

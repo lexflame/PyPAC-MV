@@ -1,4 +1,6 @@
 import sqlite3
+import time
+
 from core.database import DatabaseManager
 from core.base import BaseAbstraction
 from datetime import datetime
@@ -24,8 +26,8 @@ class TaskAbstraction(BaseAbstraction):
 
     def add_task(self, title, content='', due_date=None, priority='normal'):
         self.db.execute(
-            "INSERT INTO tasks (title, description, due_date, priority) VALUES (?, ?, ?, ?)",
-            (title, content, due_date, priority)
+            "INSERT INTO tasks (title, description, due_date, priority, status) VALUES (?, ?, ?, ?, ?)",
+            (title, content, due_date, priority, 'pending')
         )
 
     def update_task(self, task_id, **fields):
@@ -36,11 +38,10 @@ class TaskAbstraction(BaseAbstraction):
         self.db.commit()
 
     def complite_task(self, task_id):
-        connection = sqlite3.connect('pypac.db')
-        cursor = connection.cursor()
-        self.db.execute("UPDATE tasks SET status = 'done' WHERE id = ?", (task_id,))
-        connection.commit()
-        connection.close()
+        # print(self.db.connection)
+        self.db.execute("""UPDATE tasks SET status = ? WHERE id = ?;""", ('done',task_id,))
+        self.db.commit()
+        self.db.close()
 
     def delete_task(self, task_id):
         self.db.execute("DELETE FROM tasks WHERE id = ?", (task_id,))
