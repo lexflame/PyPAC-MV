@@ -1,4 +1,4 @@
-
+import sqlite3
 from core.database import DatabaseManager
 from core.base import BaseAbstraction
 from datetime import datetime
@@ -29,10 +29,18 @@ class TaskAbstraction(BaseAbstraction):
         )
 
     def update_task(self, task_id, **fields):
-        set_clause = ', '.join([f"{k} = ?" for k in fields.keys()])
+        set_clause = ', '.join([f"{field} = '{value}'" for field, value in fields.items()])
         params = list(fields.values()) + [task_id]
         sql = (f"UPDATE tasks SET {set_clause} WHERE id = ?")
-        self.db.execute(sql, params)
+        self.db.execute(sql, (task_id,))
+        self.db.commit()
+
+    def complite_task(self, task_id):
+        connection = sqlite3.connect('pypac.db')
+        cursor = connection.cursor()
+        self.db.execute("UPDATE tasks SET status = 'done' WHERE id = ?", (task_id,))
+        connection.commit()
+        connection.close()
 
     def delete_task(self, task_id):
         self.db.execute("DELETE FROM tasks WHERE id = ?", (task_id,))

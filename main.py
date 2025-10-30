@@ -1,5 +1,8 @@
 import sys, os
-import tkinter as tk
+import builtins
+import json
+import inspect
+from rich import print
 
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtGui import QIcon
@@ -34,6 +37,39 @@ def main():
     dashboard = Dashboard(agents,AgentRegistry)
     dashboard.show()
     sys.exit(app.exec())
+def jq(obj):
+    """Гибкий вывод для отладки (аналог jq/print_r)"""
+    # Если это Qt объект — пытаемся извлечь полезное
+    qt_type = type(obj).__name__
+    qt_module = type(obj).__module__
+    if qt_module.startswith("PyQt"):
+        if hasattr(obj, "text"):
+            print(f"<{qt_type} text='{obj.text()}' data={obj.data(256) if hasattr(obj, 'data') else None}>")
+        elif hasattr(obj, "objectName"):
+            print(f"<{qt_type} objectName='{obj.objectName()}'>")
+        else:
+            print(f"<{qt_type}>")
+        return
+
+    # Списки и словари — красиво форматируем
+    if isinstance(obj, (dict, list, tuple, set)):
+        try:
+            print(json.dumps(obj, indent=2, ensure_ascii=False, default=str))
+            return
+        except Exception:
+            pass
+
+    # Классы / инстансы — выводим их атрибуты
+    if hasattr(obj, "__dict__"):
+        attrs = {k: v for k, v in obj.__dict__.items() if not k.startswith("_")}
+        print(f"[bold cyan]{obj.__class__.__name__}[/bold cyan]:")
+        print(json.dumps(attrs, indent=2, ensure_ascii=False, default=str))
+        return
+
+    # Фоллбэк
+    print(obj)
+
+builtins.jq = jq
 
 if __name__ == '__main__':
     main()

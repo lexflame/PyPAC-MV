@@ -1,17 +1,9 @@
-import sys
-import qtawesome as qta
-from rich import print
-from rich.pretty import pprint
 from core.base import BaseControl
-from PyQt6.QtWidgets import (
-    QListWidgetItem, QMessageBox, QStyledItemDelegate,
-    QListWidget, QApplication, QWidget,
-    QVBoxLayout, QHBoxLayout, QLabel,
-    QPushButton, QFrame, QSizePolicy
-)
-from PyQt6.QtCore import Qt, QDate, QRect, QSize
-from PyQt6.QtGui import QPainter, QBrush, QColor, QFont
-from datetime import datetime
+from PyQt6.QtWidgets import QListWidgetItem, QMessageBox
+from PyQt6.QtCore import Qt, QSize
+
+from agents.task_agent.classes.item_separator import ItemSeparator
+from agents.task_agent.classes.item_task import ItemTask
 
 class TaskControl(BaseControl):
     def __init__(self, presentation, abstraction):
@@ -23,7 +15,7 @@ class TaskControl(BaseControl):
         self.presentation.filter_combo.currentTextChanged.connect(self.refresh_list)
         self.presentation.list_widget.itemDoubleClicked.connect(self.on_item_double_clicked)
         # initial load
-        self.presentation.list_widget.setItemDelegate(ViewDelegate())
+        self.presentation.list_widget.setItemDelegate(ItemSeparator())
         self.refresh_list()
         self.toggle_new_area()
 
@@ -49,6 +41,18 @@ class TaskControl(BaseControl):
     def on_search(self, text):
         self.refresh_list()
 
+    def complite_task(self, item):
+        task_id = item.data(256)
+        task_id = int(task_id)
+        self.abstraction.complite_task(task_id)
+        self.refresh_list()
+
+    def delete_task(self, item):
+        task_id = item.data(256)
+        task_id = int(task_id)
+        self.abstraction.delete_task(task_id)
+        self.refresh_list()
+
     def on_item_double_clicked(self, item):
         task_id = item.data(256)
         # toggle done status
@@ -59,7 +63,6 @@ class TaskControl(BaseControl):
                 self.abstraction.update_task(task_id, status=new_status)
                 break
         self.refresh_list()
-        item.setSizeHint(task_widget.sizeHint())  # Важно: задаём размер
 
     def refresh_list(self, list_widget=None):
         filter_type = self.presentation.filter_combo.currentText()
@@ -82,10 +85,15 @@ class TaskControl(BaseControl):
 
             # Создаём элемент списка
             item = QListWidgetItem()
-            task_widget = TaskWidget(
+            item.setData(256, int(r['id']))
+            task_widget = ItemTask(
                 title=title,
                 priority=priority,
-                deadline=due
+                deadline=due,
+                list_item=item,
+                complite_event=self.complite_task,
+                delete_event=self.delete_task,
+                data=r
             )
             item.setSizeHint(QSize(0, 80))
             task_widget.setMinimumHeight(40)
@@ -95,109 +103,4 @@ class TaskControl(BaseControl):
             self.presentation.list_widget.addItem(item)
             self.presentation.list_widget.setItemWidget(item, task_widget)
             # self.presentation.list_widget.setUniformItemSizes(False)
-
-class ViewDelegate(QStyledItemDelegate):
-    def paint(self, painter, option, index):
-        item_class = index.data(Qt.ItemDataRole.UserRole)
-        if item_class == "separator_date":
-            painter.save()
-            painter.fillRect(option.rect, QColor(45, 45, 45))
-            #painter.setPen(QColor("white"))
-            font = QFont()
-            font.setBold(True)
-            painter.setFont(font)
-            text = index.data(Qt.ItemDataRole.DisplayRole)
-            padding = 10
-            text_rect = QRect(option.rect)
-            text_rect.adjust(padding, 0, -padding, 0)
-            painter.drawText(text_rect, Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft, text)
-            painter.restore()
-        else:
-            super().paint(painter, option, index)
-
-class TaskWidget(QWidget):
-    def __init__(self, title, priority, deadline):
-        super().__init__()
-        self.setupUi(title, priority, deadline)
-        self.setStyleSheet(f"""QWidget {{color: #ddd;background-color: transparent !important;}}""")
-
-    def setupUi(self, title, priority, deadline):
-        self.setMinimumHeight(70)
-        self.setMaximumHeight(80)
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-        # Основной горизонтальный макет
-        layout = QHBoxLayout(self)
-        layout.setContentsMargins(10, 8, 20, 8)  # Увеличили отступы
-
-        layout.setSpacing(2)  # Расстояние между элементами
-
-        # Левая часть: текст задачи
-        text_layout = QVBoxLayout()
-        text_layout.setContentsMargins(0, 0, 0, 0)  # Убираем внешние отступы
-        text_layout.setSpacing(0) # Маленький зазор между элементами
-
-        text_layout = QVBoxLayout()
-
-        if(priority == 'low'):
-            priority_label = "🔵"
-        if (priority == 'normal'):
-            priority_label = "🔴"
-        if (priority == 'high'):
-            priority_label = "🔥"
-
-        box_label = QLabel(f" {priority_label} {title}")
-        box_label.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Preferred)
-        box_label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
-        text_layout.addWidget(box_label)
-
-        title_label = QLabel(f"<b></b>")
-        title_label.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Preferred)
-        title_label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
-
-        # Кнопка действия 'Подробности'
-        icon = qta.icon("msc.more", color="#aaa")
-        btn_more = QPushButton()
-        btn_more.setIcon(icon)
-        btn_more.setIconSize(QSize(24, 24))
-        btn_more.setFixedSize(25, 25)
-        btn_more.setToolTip('Подробности')  # подсказка при наведении
-        btn_more.setMinimumSize(25, 25)
-
-        text_layout.setContentsMargins(0, 0, 0, 0)  # Убираем отступы
-        text_layout.setSpacing(0)
-        text_layout.addWidget(title_label)
-        text_layout.addWidget(btn_more, alignment=Qt.AlignmentFlag.AlignCenter | Qt.AlignLeft)
-
-        # Добавляем в основной макет
-        layout.addLayout(text_layout, 1)  # Вес 1 (растягивается)
-
-        # Кнопка действия 'Выполнить'
-        icon = qta.icon("ei.check", color="#aaa")
-        btn_check = QPushButton()
-        btn_check.setIcon(icon)
-        btn_check.setIconSize(QSize(24, 24))
-        btn_check.setFixedSize(25, 25)
-        btn_check.setToolTip('Выполнить')  # подсказка при наведении
-
-        # Кнопка действия 'Редактировать'
-        icon = qta.icon("fa5s.edit", color="#aaa")
-        btn_edit = QPushButton()
-        btn_edit.setIcon(icon)
-        btn_edit.setIconSize(QSize(24, 24))
-        btn_edit.setFixedSize(25, 25)
-        btn_edit.setToolTip('Редактировать')  # подсказка при наведении
-
-        # Кнопка действия 'Удалить'
-        icon = qta.icon("mdi.delete", color="#aaa")
-        btn_delete = QPushButton()
-        btn_delete.setIcon(icon)
-        btn_delete.setIconSize(QSize(24, 24))
-        btn_delete.setFixedSize(25, 25)
-        btn_delete.setToolTip('Удалить')  # подсказка при наведении
-
-        # Устанавливаем минимальный размер для виджета
-        self.setMinimumHeight(60)
-        layout.addWidget(btn_edit, alignment=Qt.AlignmentFlag.AlignCenter | Qt.AlignRight)  # Вес 0 (фиксированный размер)
-        layout.addWidget(btn_check, alignment=Qt.AlignmentFlag.AlignCenter | Qt.AlignRight)  # Вес 0 (фиксированный размер)
-        layout.addWidget(btn_delete, alignment=Qt.AlignmentFlag.AlignCenter | Qt.AlignRight)  # Вес 0 (фиксированный размер)
 

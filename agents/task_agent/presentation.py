@@ -1,8 +1,7 @@
 
 from core.base import BasePresentation
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QTextEdit, QListWidget, QLineEdit, QLabel, QHBoxLayout, QComboBox, QDateEdit
-from PyQt6.QtGui import QPainter, QColor, QFont
-from PyQt6.QtCore import Qt, QDate
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QListWidget, QLineEdit, QLabel, QHBoxLayout, QComboBox, QDateEdit
+from PyQt6.QtCore import QDate
 
 class TaskPresentation(BasePresentation):
     def __init__(self):

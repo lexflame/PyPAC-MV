@@ -1,14 +1,11 @@
 import qtawesome as qta
 
-from PyQt6.QtWidgets import QWidget, QTabWidget, QVBoxLayout, QLabel, QFrame, QPushButton, QHBoxLayout, QSizePolicy, QStackedWidget
+from PyQt6.QtWidgets import QWidget, QTabWidget, QVBoxLayout, QLabel, QFrame, QPushButton, QHBoxLayout, QStackedWidget
 from PyQt6.QtCore import Qt, QSize
-from PyQt6.QtGui import QIcon, QPixmap
 
 from config.theme.ui_style import UiStyle
-from core.loader import AgentRegistry
 
 from views.window.title_bar import TitleBar
-from views.window.resources import (APP_TITLE)
 
 class Dashboard(QWidget):
     def __init__(self, agents, AgentRegistry):
