@@ -9,7 +9,7 @@ class TaskControl(BaseControl):
     def __init__(self, presentation, abstraction):
         super().__init__(presentation, abstraction)
         # wire up UI actions
-        self.presentation.new_btn.clicked.connect(self.toggle_new_area)
+        # self.presentation.new_btn.clicked.connect(self.toggle_new_area)
         self.presentation.save_btn.clicked.connect(self.save_task)
         self.presentation.search_input.textChanged.connect(self.on_search)
         self.presentation.filter_combo.currentTextChanged.connect(self.refresh_list)
@@ -65,7 +65,7 @@ class TaskControl(BaseControl):
         self.refresh_list()
 
     def refresh_list(self, list_widget=None):
-        filter_type = self.presentation.filter_combo.currentText()
+        filter_type = self.presentation.filter_combo.currentData()
         search = self.presentation.search_input.text().strip() or None
         rows = self.abstraction.get_tasks(filter_type=filter_type, search=search)
         self.presentation.list_widget.clear()

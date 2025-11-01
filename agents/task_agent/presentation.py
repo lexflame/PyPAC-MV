@@ -1,7 +1,8 @@
-
+import qtawesome as qta
 from core.base import BasePresentation
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QListWidget, QLineEdit, QLabel, QHBoxLayout, QComboBox, QDateEdit
 from PyQt6.QtCore import QDate
+from PyQt6.QtCore import QSize
 
 class TaskPresentation(BasePresentation):
     def __init__(self):
@@ -12,22 +13,36 @@ class TaskPresentation(BasePresentation):
 
         # Toolbar: create and search
         toolbar = QHBoxLayout()
-        self.new_btn = QPushButton("add")
+        # self.new_btn = QPushButton("add")
         self.search_input = QLineEdit()
-        self.search_input.setPlaceholderText("Search tasks...")
-        toolbar.addWidget(self.new_btn)
-        toolbar.addStretch()
-        toolbar.addWidget(self.search_input)
+        self.search_input.setPlaceholderText("Поиск...")
+
+        self.filter_combo = QComboBox()
+        self.filter_combo.addItem("План", "plan")
+        self.filter_combo.addItem("Просроченые", "overdue")
+        self.filter_combo.addItem("Все", "all")
+        self.filter_combo.addItem("Выполненые", "done")
+
+        # toolbar.addWidget(self.new_btn)
+        # toolbar.addStretch()
+        toolbar.addWidget(self.search_input, stretch=1)
+        toolbar.addWidget(QLabel("Режим отображения:"))
+        toolbar.addWidget(self.filter_combo)
 
         # Creation area (hidden by default)
         self.title_input = QLineEdit()
-        self.title_input.setPlaceholderText("Task title")
+        self.title_input.setPlaceholderText("Название задачи")
         self.due_date = QDateEdit()
         self.due_date.setCalendarPopup(True)
         self.due_date.setDate(QDate.currentDate())
         self.priority = QComboBox()
         self.priority.addItems(["low", "normal", "high"])
-        self.save_btn = QPushButton("+")
+        icon = qta.icon("mdi.chevron-double-down", color="#aaa")
+        self.save_btn = QPushButton()
+        self.save_btn.setIcon(icon)
+        self.save_btn.setIconSize(QSize(24, 24))
+        self.save_btn.setFixedSize(25, 25)
+        self.save_btn.setToolTip('Добавить задачу')
         create_layout = QHBoxLayout()
         create_layout.addWidget(self.title_input)
         create_layout.addWidget(self.due_date)
@@ -36,10 +51,6 @@ class TaskPresentation(BasePresentation):
 
         # Filter
         filter_layout = QHBoxLayout()
-        self.filter_combo = QComboBox()
-        self.filter_combo.addItems(["plan", "overdue", "all", "done"])
-        filter_layout.addWidget(QLabel("Filter:"))
-        filter_layout.addWidget(self.filter_combo)
         filter_layout.addStretch()
 
         # List of tasks
@@ -72,9 +83,9 @@ class TaskPresentation(BasePresentation):
         """)
 
         # Assemble
-        self.layout.addLayout(toolbar)
         self.layout.addLayout(create_layout)
-        self.layout.addLayout(filter_layout)
+        self.layout.addLayout(toolbar)
+        # self.layout.addLayout(filter_layout)
         self.layout.addWidget(self.list_widget)
 
         # Hide creation inputs initially
