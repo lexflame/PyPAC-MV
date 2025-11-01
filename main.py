@@ -8,7 +8,9 @@ from core.context.global_context import GlobalContextClass
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtGui import QIcon
 from core.loader import load_agents, AgentRegistry
+
 from core.dashboard import Dashboard
+
 from core.database import DatabaseManager
 from core.eventbus import EventBus
 from core.resolver import DependencyResolver

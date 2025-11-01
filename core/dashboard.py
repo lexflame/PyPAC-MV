@@ -1,30 +1,47 @@
 import qtawesome as qta
-
-from PyQt6.QtWidgets import QWidget, QTabWidget, QVBoxLayout, QLabel, QFrame, QPushButton, QHBoxLayout, QStackedWidget
-from PyQt6.QtCore import Qt, QSize
+from PyQt6.QtWidgets import (
+    QWidget, QTabWidget, QVBoxLayout, QLabel, QFrame, QPushButton,
+    QHBoxLayout, QStackedWidget, QSizePolicy
+)
+from PyQt6.QtCore import Qt, QSize, QPoint, QRect
+from PyQt6.QtGui import QCursor
 
 from config.theme.ui_style import UiStyle
-
 from views.window.title_bar import TitleBar
+
 
 class Dashboard(QWidget):
     def __init__(self, agents, AgentRegistry):
         super().__init__()
+
+        # === Настройки окна ===
+        self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Window)
+        self.setMouseTracking(True)
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.resize(1200, 800)
+
+        # === Служебные поля для drag/resize ===
+        self._mouse_pos = None
+        self._drag_active = False
+        self._resize_active = False
+        self._resize_direction = None
+        self._margin = 6  # ширина "захвата" по краю
+        self._min_w, self._min_h = 700, 400
+
+        # === Интерфейс ===
         style = UiStyle(self)
 
-        self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
-
-        """Боковая панель (всегда видна)"""
+        # Боковая панель
         self.side_menu = QFrame(self)
-        self.side_menu.setStyleSheet(f"border: 0.5px solid black;")
+        self.side_menu.setStyleSheet("border-right: 1px solid #444; background-color: #2d2d2d;")
         self.side_menu.setFixedWidth(45)
 
-        """Контент боковой панели"""
+        # Контейнер для кнопок бокового меню
         layout_menu = QVBoxLayout()
         layout_menu.setContentsMargins(0, 0, 0, 0)
         layout_menu.setSpacing(0)
 
-        """Добавляем область работы для проектов и ЧТО_ТО ЕЩЕ"""
+        # Навигация для проектов
         self.nav_project = QTabWidget()
         self.nav_project.setFixedWidth(250)
         self.nav_project.setDocumentMode(True)
@@ -35,16 +52,13 @@ class Dashboard(QWidget):
         label = 'Проекты'
         self.nav_project.addTab(project, label)
 
-        """Получаем табы для агентов"""
+        # === Получаем агентов ===
         self.registry = AgentRegistry
-        """ normalize agents to ordered list of (name, agent) """
         self.agents_map = {}
         if isinstance(agents, dict):
-            for k, v in agents.items():
-                self.agents_map[k] = v
+            self.agents_map = agents
         elif isinstance(agents, (list, tuple)):
             for a in agents:
-                # try to determine name
                 name = (getattr(a, 'name', None)
                         or (getattr(a, 'presentation', None)
                             and getattr(a.presentation, 'windowTitle', None)
@@ -53,7 +67,7 @@ class Dashboard(QWidget):
         else:
             raise ValueError("Unsupported agents type")
 
-        """ get metadata mapping """
+        # === Метаданные ===
         self.meta = {}
         if AgentRegistry is not None:
             if hasattr(AgentRegistry, 'metadata'):
@@ -64,72 +78,158 @@ class Dashboard(QWidget):
                 except Exception:
                     self.meta = {}
 
-        """Заголовок"""
+        # === Заголовок окна ===
         self.title_bar = TitleBar(self)
 
-        """Контент справа"""
-        self.content = QLabel("Привет! Это окно с **боковой панелью**, которая всегда видна.")
-        self.content.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        """Объединяем боковую панель и контент"""
-        content_layout = QHBoxLayout()
-        content_layout.setContentsMargins(0, 0, 0, 0)
-        content_layout.setSpacing(0)
-
-        """Выводим табы агентов"""
-        """BEGIN"""
+        # === Контент справа ===
         self.stack = QStackedWidget()
-        # # determine order
+
+        # === Формируем кнопки агентов ===
         ordered = self._ordered_agents()
         self.btn_map = {}
         for idx, (name, agent) in enumerate(ordered):
-             meta = self.meta.get(name, {})
-             title = meta.get('title', name)
-             icon_text = meta.get('icon', None)
-             # create tab content
-             work_area = QWidget()
-             work_area_layout = QVBoxLayout(work_area)
-             # prefer agent.presentation.widget or centralWidget()
-             w = None
-             if hasattr(agent, 'presentation') and hasattr(agent.presentation, 'widget'):
-                 w = agent.presentation.widget
-             else:
-                 # try centralWidget() if available
-                 try:
-                     cw = agent.presentation.centralWidget() if hasattr(agent.presentation, 'centralWidget') else None
-                     w = cw
-                 except Exception:
-                     w = None
-             if w is not None:
-                 work_area_layout.addWidget(w)
-             else:
-                 work_area_layout.addWidget(QLabel(f"Agent {title} has no view"))
-             self.stack.addWidget(work_area)
-             """Добавляем кнопки с иконками для перехода между табами"""
-             item_btn = self._make_icon_button(meta.get('icon', None), meta.get('title', name))
-             item_btn.clicked.connect(lambda _, i=idx: self.switch_to_index(i))
-             layout_menu.addWidget(item_btn)
+            meta = self.meta.get(name, {})
+            title = meta.get('title', name)
+
+            # Создаём область работы
+            work_area = QWidget()
+            work_area_layout = QVBoxLayout(work_area)
+            w = None
+            if hasattr(agent, 'presentation') and hasattr(agent.presentation, 'widget'):
+                w = agent.presentation.widget
+            else:
+                try:
+                    cw = agent.presentation.centralWidget() if hasattr(agent.presentation, 'centralWidget') else None
+                    w = cw
+                except Exception:
+                    w = None
+            work_area_layout.addWidget(w if w else QLabel(f"Agent {title} has no view"))
+            self.stack.addWidget(work_area)
+
+            # Кнопка агента
+            item_btn = self._make_icon_button(meta.get('icon', None), title)
+            item_btn.clicked.connect(lambda _, i=idx: self.switch_to_index(i))
+            layout_menu.addWidget(item_btn)
+            self.btn_map[name] = item_btn
+
         layout_menu.addStretch()
         self.side_menu.setLayout(layout_menu)
-        """END"""
 
+        # === Сборка контента ===
+        content_layout = QHBoxLayout()
+        content_layout.setContentsMargins(0, 0, 0, 0)
+        content_layout.setSpacing(0)
         content_layout.addWidget(self.side_menu)
         content_layout.addWidget(self.nav_project)
         content_layout.addWidget(self.stack)
-        #content_layout.addWidget(self.tabs)
 
-        """Общий layout"""
+        # === Главный layout ===
         main_layout = QVBoxLayout()
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
         main_layout.addWidget(self.title_bar)
         main_layout.addLayout(content_layout)
-
         self.setLayout(main_layout)
 
-        """Разворачиваем окно на весь экран"""
-        screen_geometry = self.screen().availableGeometry()
-        self.setGeometry(screen_geometry)
+    # ===========================================================
+    # ===============  РЕАЛИЗАЦИЯ RESIZE / DRAG  ================
+    # ===========================================================
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self._mouse_pos = event.globalPosition().toPoint()
+            if self._get_resize_direction(event.pos()):
+                self._resize_active = True
+                self._resize_direction = self._get_resize_direction(event.pos())
+            else:
+                self._drag_active = True
+                self._drag_offset = event.globalPosition().toPoint() - self.frameGeometry().topLeft()
+        super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        pos = event.pos()
+        if self._resize_active:
+            self._perform_resize(event.globalPosition().toPoint())
+        elif self._drag_active:
+            self.move(event.globalPosition().toPoint() - self._drag_offset)
+        else:
+            direction = self._get_resize_direction(pos)
+            self._update_cursor(direction)
+        super().mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        self._drag_active = False
+        self._resize_active = False
+        self._resize_direction = None
+        self.unsetCursor()
+        super().mouseReleaseEvent(event)
+
+    def _perform_resize(self, global_pos: QPoint):
+        rect = self.geometry()
+        diff = global_pos - self._mouse_pos
+        geo = QRect(rect)
+
+        d = self._resize_direction
+        if d in ('left', 'top-left', 'bottom-left'):
+            geo.setLeft(geo.left() + diff.x())
+        if d in ('right', 'top-right', 'bottom-right'):
+            geo.setRight(geo.right() + diff.x())
+        if d in ('top', 'top-left', 'top-right'):
+            geo.setTop(geo.top() + diff.y())
+        if d in ('bottom', 'bottom-left', 'bottom-right'):
+            geo.setBottom(geo.bottom() + diff.y())
+
+        # Ограничение по минимальному размеру
+        if geo.width() < self._min_w:
+            geo.setWidth(self._min_w)
+        if geo.height() < self._min_h:
+            geo.setHeight(self._min_h)
+
+        self.setGeometry(geo)
+        self._mouse_pos = global_pos
+
+    def _get_resize_direction(self, pos):
+        x, y = pos.x(), pos.y()
+        w, h = self.width(), self.height()
+        m = self._margin
+
+        if x <= m and y <= m:
+            return 'top-left'
+        elif x >= w - m and y <= m:
+            return 'top-right'
+        elif x <= m and y >= h - m:
+            return 'bottom-left'
+        elif x >= w - m and y >= h - m:
+            return 'bottom-right'
+        elif x <= m:
+            return 'left'
+        elif x >= w - m:
+            return 'right'
+        elif y <= m:
+            return 'top'
+        elif y >= h - m:
+            return 'bottom'
+        return None
+
+    def _update_cursor(self, direction):
+        cursors = {
+            'top-left': Qt.CursorShape.SizeFDiagCursor,
+            'bottom-right': Qt.CursorShape.SizeFDiagCursor,
+            'top-right': Qt.CursorShape.SizeBDiagCursor,
+            'bottom-left': Qt.CursorShape.SizeBDiagCursor,
+            'left': Qt.CursorShape.SizeHorCursor,
+            'right': Qt.CursorShape.SizeHorCursor,
+            'top': Qt.CursorShape.SizeVerCursor,
+            'bottom': Qt.CursorShape.SizeVerCursor,
+        }
+        if direction:
+            self.setCursor(cursors[direction])
+        else:
+            self.unsetCursor()
+
+    # ===========================================================
+    # ===================  ПРОЧИЕ МЕТОДЫ  =======================
+    # ===========================================================
 
     def _create_agent_tab(self, agent, name):
         widget = QWidget()
@@ -149,17 +249,15 @@ class Dashboard(QWidget):
         return widget
 
     def _ordered_agents(self):
-        # return list of tuples (name, agent) ordered by meta 'order' if present
         items = list(self.agents_map.items())
         def order_key(item):
-            name, agent = item
+            name, _ = item
             meta = self.meta.get(name, {})
             return meta.get('order', 1000)
         items.sort(key=order_key)
         return items
 
     def switch_to_agent(self, agent_name):
-        # switch to tab corresponding to agent_name
         ordered = self._ordered_agents()
         for idx, (name, _) in enumerate(ordered):
             if name == agent_name:
@@ -168,10 +266,8 @@ class Dashboard(QWidget):
         return False
 
     def switch_to_index(self, index):
-        # update buttons checked state
         for btn in self.btn_map.values():
             btn.setChecked(False)
-        # find name for index
         ordered = self._ordered_agents()
         if 0 <= index < len(ordered):
             name = ordered[index][0]
@@ -181,21 +277,20 @@ class Dashboard(QWidget):
         self.stack.setCurrentIndex(index)
 
     def _make_icon_button(self, icon_name, tooltip):
-        """Создание кнопки с иконкой"""
-        icon = qta.icon(icon_name, color="white")
+        icon = qta.icon(icon_name or "fa5s.cube", color="white")
         btn = QPushButton()
         btn.setIcon(icon)
         btn.setIconSize(QSize(24, 24))
-        btn.setFixedSize(45, 45)  # квадратные кнопки
-        btn.setToolTip(tooltip)  # подсказка при наведении
+        btn.setFixedSize(45, 45)
+        btn.setToolTip(tooltip)
         btn.setStyleSheet("""
-                    QPushButton {
-                        background: transparent;
-                        border: none;
-                    }
-                    QPushButton:hover {
-                        background-color: #3d3d3d;
-                        border-radius: 8px;
-                    }
-                """)
+            QPushButton {
+                background: transparent;
+                border: none;
+            }
+            QPushButton:hover {
+                background-color: #3d3d3d;
+                border-radius: 8px;
+            }
+        """)
         return btn
