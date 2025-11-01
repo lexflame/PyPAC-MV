@@ -19,7 +19,7 @@ def main():
         sys.path.insert(0, root)
     app = QApplication(sys.argv)
     app.setWindowIcon(QIcon("source/icon.png"))
-    db = DatabaseManager(os.path.join(root, "pypac.db"))
+    db = DatabaseManager(os.path.join(root, "db/base_app.db"))
     eventbus = EventBus()
     agents = load_agents('agents')
     print(f"Загружено агентов: {len(agents)}")

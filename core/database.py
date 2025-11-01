@@ -3,14 +3,14 @@ from pathlib import Path
 
 class DatabaseManager:
     _instance = None
-    def __new__(cls, db_path="/pypac.db"):
+    def __new__(cls, db_path="/base_app.db"):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             cls._instance._init(db_path)
         return cls._instance
     def _init(self, db_path):
         db_dir = Path("db")
-        self.db_path = 'db/pypac.db'
+        self.db_path = 'db/base_app.db'
         print(self.db_path)
         self.connection = sqlite3.connect(self.db_path)
         self.connection.row_factory = sqlite3.Row
