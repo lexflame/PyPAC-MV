@@ -96,7 +96,7 @@ class TaskControl(BaseControl):
                 data=r
             )
             item.setSizeHint(QSize(0, 80))
-            task_widget.setMinimumHeight(40)
+            # task_widget.setMinimumHeight(40)
 
 
             # Привязываем виджет к элементу

@@ -1,8 +1,9 @@
 import sys, os
 import builtins
 import json
-import inspect
 from rich import print
+
+from core.context.global_context import GlobalContextClass
 
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtGui import QIcon
