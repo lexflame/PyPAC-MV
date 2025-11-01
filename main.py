@@ -18,7 +18,7 @@ def main():
     if root not in sys.path:
         sys.path.insert(0, root)
     app = QApplication(sys.argv)
-    app.setWindowIcon(QIcon("icon.png"))
+    app.setWindowIcon(QIcon("source/icon.png"))
     db = DatabaseManager(os.path.join(root, "pypac.db"))
     eventbus = EventBus()
     agents = load_agents('agents')
