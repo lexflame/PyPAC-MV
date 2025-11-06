@@ -1,9 +1,10 @@
 import qtawesome as qta
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel,
-    QPushButton, QSizePolicy, QListWidgetItem, QFrame
+    QPushButton, QSizePolicy, QListWidgetItem, QFrame, QLineEdit, QDateEdit, QComboBox
 )
-from PyQt6.QtCore import Qt, QSize, QPropertyAnimation, QEasingCurve
+from PyQt6.QtCore import Qt, QSize, QPropertyAnimation, QEasingCurve, QDate
+
 
 class ItemTask(QWidget):
     def __init__(self, title, priority, deadline, list_item=None, complite_event=None, delete_event=None, data=None):
@@ -105,7 +106,6 @@ class ItemTask(QWidget):
         btn_drag.setIcon(icon)
         btn_drag.setIconSize(QSize(24, 24))
         btn_drag.setFixedSize(25, 25)
-        btn_drag.setFixedSize(25, 25)
         # btn_drag.setStyleSheet("border:1px solid red;")
         btn_drag.setToolTip('Перенести')
         btn_drag.setMinimumSize(25, 25)
@@ -130,21 +130,38 @@ class ItemTask(QWidget):
         priority_desc = lang_map.get(priority, "Не указан")
         desc_box.addWidget(QLabel(f"<b>Название: {title}</b>"), stretch=4)
         desc_box.addWidget(QLabel(f"<b>Срок: {deadline}</b>"), stretch=4)
-        desc_box.addWidget(QLabel(f"<b>Приоритет: {priority_desc}</b>"), stretch=4)
+        desc_box.addWidget(QLabel(f"<b>Приоритет: {priority} {priority_desc}</b>"), stretch=4)
 
         # --- 3 горизонтальный блок ---
         self.edit = QWidget()
         self.edit.hide()
         if debug:
-            edit.setStyleSheet("""QWidget {border: 2px solid blue;background-color: rgba(50, 205, 50, 0.05);}""")
-        edit_box = QVBoxLayout(self.edit)
+            self.edit.setStyleSheet("""QWidget {border: 2px solid blue;background-color: rgba(50, 205, 50, 0.05);}""")
+        edit_box = QHBoxLayout(self.edit)
         edit_box.setContentsMargins(5, 5, 5, 5)
-        # edit_box.addWidget(QLabel("Лейбл"), stretch=4)
-        edit_box.addWidget(QPushButton("Кнопка 3"), stretch=4)
-        edit_box.addWidget(QPushButton("Кнопка 3"), stretch=4)
-        edit_box.addWidget(QPushButton("Кнопка 3"), stretch=4)
-        edit_box.addWidget(QPushButton("Кнопка 3"), stretch=4)
-        edit_box.addWidget(QPushButton("Кнопка 3"), stretch=4)
+        self.edit.setStyleSheet("""QWidget {background-color: #3a3a3a;border-radius:5px;}""")
+
+
+        self.title_edit_input = QLineEdit(title)
+        self.title_edit_input.setPlaceholderText("Название задачи")
+        self.due_date_edit = QDateEdit()
+        self.due_date_edit.setCalendarPopup(True)
+        year, month, day = map(int, deadline.split("-"))
+        self.due_date_edit.setDate(QDate(year, month, day))
+        self.priority_edit = QComboBox()
+        level_map = {
+            "low": 0,
+            "normal": 1,
+            "high": 2,
+        }
+        level_index = int(level_map.get(priority, 1))
+        self.priority_edit.addItems(["low", "normal", "high"])
+        self.priority_edit.setCurrentIndex(level_index)
+
+        edit_box.addWidget(self.title_edit_input, stretch=15)
+        edit_box.addWidget(self.due_date_edit, stretch=4)
+        edit_box.addWidget(self.priority_edit, stretch=4)
+
 
         # --- Добавляем горизонтальные блоки в вертикальный ---
         vbox.addWidget(item)
@@ -170,11 +187,19 @@ class ItemTask(QWidget):
         return circle
 
     def toggle_edit(self):
+
+        if self.desc.isVisible():
+            self.desc.hide()
+
         visible = self.edit.isVisible()
         self.edit.setVisible(not visible)
         self.animate_size_change_edit(expanding=not visible)
 
     def toggle_desc(self):
+
+        if self.edit.isVisible():
+            self.edit.hide()
+
         visible = self.desc.isVisible()
         self.desc.setVisible(not visible)
         self.animate_size_change_desc(expanding=not visible)
