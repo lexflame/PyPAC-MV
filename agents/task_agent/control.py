@@ -1,6 +1,6 @@
 from core.base import BaseControl
 from PyQt6.QtWidgets import QListWidgetItem, QMessageBox
-from PyQt6.QtCore import Qt, QSize
+from PyQt6.QtCore import Qt, QSize, QPropertyAnimation, QEasingCurve
 
 from agents.task_agent.classes.item_separator import ItemSeparator
 from agents.task_agent.classes.item_task import ItemTask
@@ -95,7 +95,8 @@ class TaskControl(BaseControl):
                 delete_event=self.delete_task,
                 data=r
             )
-            item.setSizeHint(QSize(0, 80))
+            # item.setSizeHint(QSize(0, 180))
+            item.setSizeHint(task_widget.sizeHint())
             # task_widget.setMinimumHeight(40)
 
 
@@ -103,4 +104,19 @@ class TaskControl(BaseControl):
             self.presentation.list_widget.addItem(item)
             self.presentation.list_widget.setItemWidget(item, task_widget)
             # self.presentation.list_widget.setUniformItemSizes(False)
+
+    def scroll_to_item_smooth(self, item):
+        """Плавно прокручивает к элементу item."""
+        target_value = self.row(item) * self.sizeHintForRow(0)  # высота строки * номер
+        anim = QPropertyAnimation(self.verticalScrollBar(), b"value")
+        anim.setDuration(300)  # длительность анимации
+        anim.setStartValue(self.verticalScrollBar().value())
+        anim.setEndValue(target_value)
+        anim.setEasingCurve(QEasingCurve.Type.InOutCubic)
+        anim.start()
+        self._anim = anim
+
+    def scroll(self):
+        item = self.presentation.list_widget.item(30)
+        self.presentation.list_widget.scroll_to_item_smooth(item)
 

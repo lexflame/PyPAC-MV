@@ -65,7 +65,7 @@ class TaskPresentation(BasePresentation):
             QListWidget::item[data-role="separator_date"] {
                 background-color: #FFF !important;
                 color: white;
-                width: 50%;
+                w1idth: 50%;
             }
             QListWidget::item {
                 background-color: #2c3e50;

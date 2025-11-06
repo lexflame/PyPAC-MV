@@ -45,6 +45,7 @@ class UiStyle:
     def apply_font(self):
         """Устанавливает системный шрифт."""
         self.app.setStyleSheet(f"""
+            QW1idget {{border: 1px solid rgba(255, 165, 0, 0.5);background-color: rgba(255, 255, 255, 0.05);}}
             QWidget {{
                 font-family: '{self.font_family}';
                 font-size: {self.font_size}pt;
