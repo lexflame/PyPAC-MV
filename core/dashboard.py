@@ -65,7 +65,7 @@ class Dashboard(QWidget):
                             and a.presentation.windowTitle()) or str(id(a)))
                 self.agents_map[name] = a
         else:
-            raise ValueError("Unsupported agents type")
+            raise ValueError("Неподдерживаемый тип компонента")
 
         # === Метаданные ===
         self.meta = {}
@@ -103,7 +103,7 @@ class Dashboard(QWidget):
                     w = cw
                 except Exception:
                     w = None
-            work_area_layout.addWidget(w if w else QLabel(f"Agent {title} has no view"))
+            work_area_layout.addWidget(w if w else QLabel(f"Компонент {title} не имеет представления"))
             self.stack.addWidget(work_area)
 
             # Кнопка агента
@@ -243,9 +243,9 @@ class Dashboard(QWidget):
                 if cw is not None:
                     layout.addWidget(cw)
                 else:
-                    layout.addWidget(QLabel(f"⚠️ Агент {name} не имеет представления", alignment=Qt.AlignmentFlag.AlignCenter))
+                    layout.addWidget(QLabel(f"⚠️ Компонент {name} не имеет представления", alignment=Qt.AlignmentFlag.AlignCenter))
         except Exception:
-            layout.addWidget(QLabel(f"⚠️ Ошибка отображения агента {name}", alignment=Qt.AlignmentFlag.AlignCenter))
+            layout.addWidget(QLabel(f"⚠️ Ошибка отображения компонента {name}", alignment=Qt.AlignmentFlag.AlignCenter))
         return widget
 
     def _ordered_agents(self):

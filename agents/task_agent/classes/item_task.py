@@ -7,7 +7,6 @@ from PyQt6.QtCore import Qt, QSize, QPropertyAnimation, QEasingCurve
 
 class ItemTask(QWidget):
     def __init__(self, title, priority, deadline, list_item=None, complite_event=None, delete_event=None, data=None):
-
         super().__init__()
         self.is_complited_task = None
         self._list_item = list_item

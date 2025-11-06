@@ -25,7 +25,7 @@ def main():
     db = DatabaseManager(os.path.join(root, "db/base_app.db"))
     eventbus = EventBus()
     agents = load_agents('agents')
-    print(f"Загружено агентов: {len(agents)}")
+    print(f"Загружено компонентов: {len(agents)}")
     for name, meta in AgentRegistry.metadata.items():
         db.register_agent(name, meta.get('version', '1.0'))
     for name, agent in agents.items():
