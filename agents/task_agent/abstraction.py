@@ -1,9 +1,5 @@
-import sqlite3
-import time
-
 from core.database import DatabaseManager
 from core.base import BaseAbstraction
-from datetime import datetime
 
 class TaskAbstraction(BaseAbstraction):
     def __init__(self):
@@ -38,10 +34,10 @@ class TaskAbstraction(BaseAbstraction):
         self.db.commit()
 
     def complite_task(self, task_id):
-        # print(self.db.connection)
+        # print("""UPDATE tasks SET status = ? WHERE id = ?;""", ('done',task_id,))
         self.db.execute("""UPDATE tasks SET status = ? WHERE id = ?;""", ('done',task_id,))
-        self.db.commit()
-        self.db.close()
+        # self.db.commit()
+        # self.db.close()
 
     def delete_task(self, task_id):
         self.db.execute("DELETE FROM tasks WHERE id = ?", (task_id,))

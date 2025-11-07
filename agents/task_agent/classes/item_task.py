@@ -1,19 +1,22 @@
 import qtawesome as qta
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel,
-    QPushButton, QSizePolicy, QListWidgetItem, QFrame, QLineEdit, QDateEdit, QComboBox
+    QPushButton, QLineEdit, QDateEdit, QComboBox
 )
-from PyQt6.QtCore import Qt, QSize, QPropertyAnimation, QEasingCurve, QDate
+from PyQt6.QtCore import Qt, QSize, QDate
 
+from agents.task_agent.classes.behavior.task_item_behavior import TaskItemBehavior
 
 class ItemTask(QWidget):
-    def __init__(self, title, priority, deadline, list_item=None, complite_event=None, delete_event=None, data=None):
+    def __init__(self, title, priority, deadline, list_item=None, complite_event=None, delete_event=None, collapse_all=None, data=None):
         super().__init__()
         self.is_complited_task = None
         self._list_item = list_item
         self._priority = priority
         self._complite_event = complite_event
         self._delete_event = delete_event
+        self._collapse_all = collapse_all
+        self.behavior = TaskItemBehavior(self)
         self.setupUi(title, priority, deadline, list_item, data)
         self.setStyleSheet(f"""QWidget {{color: #ddd;background-color: transparent !important;}}""")
 
@@ -32,12 +35,12 @@ class ItemTask(QWidget):
         if debug:
             item.setStyleSheet("""QWidget {border: 2px solid orange;background-color: rgba(255, 69, 0, 0.05);}""")
         item_box = QHBoxLayout(item)
-        priority_circle = self.create_priority_circle()
+        priority_circle = self.behavior.create_priority_circle()
         item_box.setContentsMargins(5, 5, 5, 5)
 
         title_label = QLabel(f"{deadline} <b>{title}</b>")
 
-         # отступ между кружком и текстом
+        # отступ между кружком и текстом
         item_box.addWidget(title_label)
         item_box.addWidget(priority_circle)
         item_box.addSpacing(5)
@@ -52,7 +55,7 @@ class ItemTask(QWidget):
         # btn_more.setStyleSheet("border:1px solid red;")
         btn_more.setToolTip('Подробности')
         btn_more.setMinimumSize(25, 25)
-        btn_more.clicked.connect(self.toggle_desc)
+        btn_more.clicked.connect(self.behavior.on_desc_clicked)
 
         title_box = QHBoxLayout()
         title_box.setContentsMargins(0, 0, 0, 0)
@@ -74,7 +77,7 @@ class ItemTask(QWidget):
         btn_edit.setIconSize(QSize(24, 24))
         btn_edit.setFixedSize(25, 25)
         btn_edit.setToolTip('Редактировать')
-        btn_edit.clicked.connect(self.toggle_edit)
+        btn_edit.clicked.connect(self.behavior.on_edit_clicked)
 
         # Кнопка действия 'Выполнить'
         icon = qta.icon("ei.check", color="#aaa")
@@ -83,6 +86,7 @@ class ItemTask(QWidget):
         btn_check.setIconSize(QSize(24, 24))
         btn_check.setFixedSize(25, 25)
         btn_check.setToolTip('Выполнить')
+
         if self._complite_event is not None and self._list_item is not None:
             btn_check.clicked.connect(lambda: self._complite_event(self._list_item))
 
@@ -95,6 +99,10 @@ class ItemTask(QWidget):
         btn_delete.setToolTip('Удалить')
         if self._delete_event is not None and self._list_item is not None:
             btn_delete.clicked.connect(lambda: self._delete_event(self._list_item))
+
+        btn_edit.setStyleSheet(f"""QPushButton:hover {{background-color: #3a3a3a;border-radius: 5px;}}""")
+        btn_check.setStyleSheet(f"""QPushButton:hover {{background-color: #3a3a3a;border-radius: 5px;}}""")
+        btn_delete.setStyleSheet(f"""QPushButton:hover {{background-color: #3a3a3a;border-radius: 5px;}}""")
 
         btn_box.addWidget(btn_edit, stretch=1)
         btn_box.addWidget(btn_check, stretch=1)
@@ -141,7 +149,6 @@ class ItemTask(QWidget):
         edit_box.setContentsMargins(5, 5, 5, 5)
         self.edit.setStyleSheet("""QWidget {background-color: #3a3a3a;border-radius:5px;}""")
 
-
         self.title_edit_input = QLineEdit(title)
         self.title_edit_input.setPlaceholderText("Название задачи")
         self.due_date_edit = QDateEdit()
@@ -162,7 +169,6 @@ class ItemTask(QWidget):
         edit_box.addWidget(self.due_date_edit, stretch=4)
         edit_box.addWidget(self.priority_edit, stretch=4)
 
-
         # --- Добавляем горизонтальные блоки в вертикальный ---
         vbox.addWidget(item)
         vbox.addWidget(self.desc)
@@ -171,84 +177,3 @@ class ItemTask(QWidget):
         # --- Основной layout окна ---
         root_layout = QVBoxLayout(self)
         root_layout.addWidget(header)
-
-    def create_priority_circle(self):
-        """Создаёт виджет-кружок для приоритета."""
-        color_map = {
-            "high": "#e74c3c",  # красный
-            "normal": "#f1c40f",  # желтый
-            "low": "#2ecc71",  # зеленый
-        }
-        color = color_map.get(self._priority, "#95a5a6")  # серый по умолчанию
-
-        circle = QFrame()
-        circle.setFixedSize(16, 16)  # размер кружка
-        circle.setStyleSheet(f"border-radius: 8px; background-color: {color};")
-        return circle
-
-    def toggle_edit(self):
-
-        if self.desc.isVisible():
-            self.desc.hide()
-
-        visible = self.edit.isVisible()
-        self.edit.setVisible(not visible)
-        self.animate_size_change_edit(expanding=not visible)
-
-    def toggle_desc(self):
-
-        if self.edit.isVisible():
-            self.edit.hide()
-
-        visible = self.desc.isVisible()
-        self.desc.setVisible(not visible)
-        self.animate_size_change_desc(expanding=not visible)
-
-    def animate_size_change_desc(self, expanding=True):
-        """Плавно изменяет высоту ItemTask при раскрытии/сворачивании."""
-        start_height = self.height()
-        # Получаем новую целевую высоту
-        end_height = self.sizeHint().height()
-
-        anim = QPropertyAnimation(self, b"maximumHeight")
-        anim.setDuration(250)
-        anim.setStartValue(start_height)
-        anim.setEndValue(end_height)
-        anim.setEasingCurve(QEasingCurve.Type.InOutCubic)
-        anim.start()
-        # Сохраняем, чтобы GC не уничтожил
-        self._anim = anim
-        # После завершения обновляем item в QListWidget
-        def on_finished():
-            if self._list_item:
-                self._list_item.setSizeHint(self.sizeHint())
-            # self.setMaximumHeight(16777215)  # сбросить ограничение высоты
-        anim.finished.connect(on_finished)
-        anim.finished.connect(on_finished)
-
-    def animate_size_change_edit(self, expanding=True):
-        """Плавно изменяет высоту ItemTask при раскрытии/сворачивании."""
-        start_height = self.height()
-        # Получаем новую целевую высоту
-        end_height = self.sizeHint().height()
-
-        anim = QPropertyAnimation(self, b"maximumHeight")
-        anim.setDuration(250)
-        anim.setStartValue(start_height)
-        anim.setEndValue(end_height)
-        anim.setEasingCurve(QEasingCurve.Type.InOutCubic)
-        anim.start()
-        # Сохраняем, чтобы GC не уничтожил
-        self._anim = anim
-        # После завершения обновляем item в QListWidget
-        def on_finished():
-            if self._list_item:
-                self._list_item.setSizeHint(self.sizeHint())
-            # self.setMaximumHeight(16777215)  # сбросить ограничение высоты
-        anim.finished.connect(on_finished)
-        anim.finished.connect(on_finished)
-
-
-
-
-

@@ -1,6 +1,6 @@
 from core.base import BaseControl
 from PyQt6.QtWidgets import QListWidgetItem, QMessageBox
-from PyQt6.QtCore import Qt, QSize, QPropertyAnimation, QEasingCurve
+from PyQt6.QtCore import Qt, QSize, QPropertyAnimation, QEasingCurve, QRect
 
 from agents.task_agent.classes.item_separator import ItemSeparator
 from agents.task_agent.classes.item_task import ItemTask
@@ -84,39 +84,87 @@ class TaskControl(BaseControl):
             title = r['title']
 
             # Создаём элемент списка
-            item = QListWidgetItem()
-            item.setData(256, int(r['id']))
+            self.ListItem = QListWidgetItem()
+            self.ListItem.setData(256, int(r['id']))
             task_widget = ItemTask(
                 title=title,
                 priority=priority,
                 deadline=due,
-                list_item=item,
+                list_item=self.ListItem,
                 complite_event=self.complite_task,
                 delete_event=self.delete_task,
+                collapse_all=self.collapse_all,
                 data=r
             )
             # item.setSizeHint(QSize(0, 180))
-            item.setSizeHint(task_widget.sizeHint())
+            self.ListItem.setSizeHint(task_widget.sizeHint())
             # task_widget.setMinimumHeight(40)
 
 
             # Привязываем виджет к элементу
-            self.presentation.list_widget.addItem(item)
-            self.presentation.list_widget.setItemWidget(item, task_widget)
+            self.presentation.list_widget.addItem(self.ListItem)
+            self.presentation.list_widget.setItemWidget(self.ListItem, task_widget)
             # self.presentation.list_widget.setUniformItemSizes(False)
 
     def scroll_to_item_smooth(self, item):
         """Плавно прокручивает к элементу item."""
         target_value = self.row(item) * self.sizeHintForRow(0)  # высота строки * номер
         anim = QPropertyAnimation(self.verticalScrollBar(), b"value")
-        anim.setDuration(300)  # длительность анимации
+        anim.setEasingCurve(QEasingCurve.Type.OutBounce)
         anim.setStartValue(self.verticalScrollBar().value())
         anim.setEndValue(target_value)
-        anim.setEasingCurve(QEasingCurve.Type.InOutCubic)
+        anim.setDuration(300)
         anim.start()
         self._anim = anim
 
     def scroll(self):
         item = self.presentation.list_widget.item(30)
         self.presentation.list_widget.scroll_to_item_smooth(item)
+
+    def collapse_all(self):
+        list_widget = self.presentation.list_widget
+        for i in range(list_widget.count()):
+            item = list_widget.item(i)
+            widget = list_widget.itemWidget(item)
+            if not widget:
+                continue
+
+            # Скрываем раскрытые элементы
+            for part_name in ("edit", "desc"):
+                part = getattr(widget, part_name, None)
+                if part and part.isVisible():
+                    part.hide()
+
+            # Обновляем лейаут и высоту
+            widget.layout().activate()
+            widget.adjustSize()
+            item.setSizeHint(QSize(widget.width(), 85))
+            self.animate_collapse(widget)
+
+    def animate_collapse(self,widget):
+        l_item = self.ListItem
+        start_height = l_item.sizeHint().height()
+        end_height = 85
+
+        if start_height == end_height:
+            return  # уже свернут
+
+        anim = QPropertyAnimation(widget, b"geometry")
+        anim.setEasingCurve(QEasingCurve.Type.OutBounce)
+        anim.setStartValue(QRect(0, widget.y(), widget.width(), start_height))
+        anim.setEndValue(QRect(0, widget.y(), widget.width(), end_height))
+        anim.setDuration(250)
+
+
+        # Чтобы не "улетала" геометрия
+        def update_height():
+            item.setSizeHint(widget.sizeHint())
+
+        anim.valueChanged.connect(update_height)
+        anim.finished.connect(update_height)
+
+        # Хранить ссылку, чтобы не уничтожалась сборщиком
+        widget._collapse_anim = anim
+        anim.start()
+
 
