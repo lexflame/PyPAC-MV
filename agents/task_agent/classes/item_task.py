@@ -42,7 +42,9 @@ class ItemTask(QWidget):
         priority_circle = self.behavior.create_priority_circle()
         item_box.setContentsMargins(5, 5, 5, 5)
 
-        title_label = QLabel(f"{deadline} <b>{title}</b>")
+        title_label = QLabel()
+        title_label.setText(f"""<b>{deadline}</b>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;<b>{title}&nbsp;&nbsp;&nbsp;</b>""")
+
 
         # отступ между кружком и текстом
         item_box.addWidget(title_label)
@@ -164,6 +166,8 @@ class ItemTask(QWidget):
             year, month, day = map(int, def_date.split("-"))
 
         self.due_date_edit.setDate(QDate(year, month, day))
+
+
         self.priority_edit = QComboBox()
         level_map = {
             "low": 0,
