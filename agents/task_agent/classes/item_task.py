@@ -9,7 +9,7 @@ from PyQt5.QtGui import QDrag
 from agents.task_agent.classes.behavior.task_item_behavior import TaskItemBehavior
 
 class ItemTask(QWidget):
-    def __init__(self, title, priority, deadline, list_item=None, complite_event=None, delete_event=None, collapse_all=None, data=None):
+    def __init__(self, title, priority, deadline, list_item=None, complite_event=None, delete_event=None, collapse_all=None, data=None, position=False):
         super().__init__()
         self.setAcceptDrops(True)
         self.is_complited_task = None
@@ -19,16 +19,18 @@ class ItemTask(QWidget):
         self._delete_event = delete_event
         self._collapse_all = collapse_all
         self.behavior = TaskItemBehavior(self)
-        self.setupUi(title, priority, deadline, list_item, data)
+        self.setupUi(title, priority, deadline, list_item, data, position)
         self.setStyleSheet(f"""QWidget {{color: #ddd;background-color: transparent !important;}}""")
 
-    def setupUi(self, title, priority, deadline, list_item, data):
+    def setupUi(self, title, priority, deadline, list_item, data, position):
         # --- ВЕРТИКАЛЬНЫЙ layout (весь контейнер) ---
         debug = False;
         header = QWidget(self)
+        self.item_position = QLineEdit(f"{position}")
         if debug:
             header.setStyleSheet("""QWidget {border: 2px solid red;background-color: rgba(0, 120, 212, 0.05);}""")
         vbox = QVBoxLayout(header)
+        vbox.setContentsMargins(5, 5, 5, 5)
         vbox.setContentsMargins(5, 5, 5, 5)
         vbox.setSpacing(2)
 
@@ -154,7 +156,13 @@ class ItemTask(QWidget):
         self.title_edit_input.setPlaceholderText("Название задачи")
         self.due_date_edit = QDateEdit()
         self.due_date_edit.setCalendarPopup(True)
-        year, month, day = map(int, deadline.split("-"))
+
+        if len(deadline) > 0:
+            year, month, day = map(int, deadline.split("-"))
+        else:
+            def_date = "2025-01-01";
+            year, month, day = map(int, def_date.split("-"))
+
         self.due_date_edit.setDate(QDate(year, month, day))
         self.priority_edit = QComboBox()
         level_map = {

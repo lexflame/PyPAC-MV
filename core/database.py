@@ -28,8 +28,15 @@ class DatabaseManager:
         """)
         self.connection.commit()
     def execute(self, query, params=None):
+        debug = False
         cur = self.connection.cursor()
         cur.execute(query, params or [])
+
+        if debug:
+            if params is not None:
+                debug_sql = query.replace("?", "%s") % tuple(repr(p) for p in params)
+                print("QUERY:", debug_sql)
+
         self.connection.commit()
         return cur
     def fetchall(self, query, params=None):
@@ -45,6 +52,10 @@ class DatabaseManager:
             INSERT OR IGNORE INTO agents_meta (agent_name, version)
             VALUES (?, ?)
         """, (name, version))
+
+    def commit(self):  # Добавляем метод
+        self.connection.commit()
+
     def close(self):
         try:
             self.connection.close()

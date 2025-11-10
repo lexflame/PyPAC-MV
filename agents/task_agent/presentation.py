@@ -1,6 +1,7 @@
 import qtawesome as qta
 from core.base import BasePresentation
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QListWidget, QLineEdit, QLabel, QHBoxLayout, QComboBox, QDateEdit
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QListWidget, QLineEdit, QLabel, QHBoxLayout, QComboBox, \
+    QDateEdit, QAbstractItemView
 from PyQt6.QtCore import QDate, Qt
 from PyQt6.QtCore import QSize
 
@@ -63,8 +64,10 @@ class TaskPresentation(BasePresentation):
         self.list_widget.setSelectionMode(QListWidget.SelectionMode.SingleSelection)
         self.list_widget.setDragEnabled(True)
         self.list_widget.setAcceptDrops(True)
-        self.list_widget.setDragDropMode(QListWidget.DragDropMode.InternalMove)
+        # self.list_widget.setDragDropMode(QListWidget.DragDropMode.InternalMove)
+        self.list_widget.setDragDropMode(QAbstractItemView.DragDropMode.DragDrop)
         self.list_widget.setDefaultDropAction(Qt.DropAction.MoveAction)
+        self.list_widget.model().rowsMoved.connect(self.on_rows_moved)
 
         # self.list_widget.setFixedWidth(250) # Ширина столбца вывода задач
 
@@ -104,7 +107,7 @@ class TaskPresentation(BasePresentation):
         self.due_date.hide()
         self.priority.hide()
         self.save_btn.hide()
-        self.list_widget.model().rowsMoved.connect(self.on_rows_moved)
+
 
         self.control = TaskControl(self, self.abstraction)
 
@@ -112,21 +115,26 @@ class TaskPresentation(BasePresentation):
 
         separator_item = self.list_widget.item(start)
         date_to = separator_item.text()
+
         moved_item = self.list_widget.item(row)
         if moved_item is None:
             return
 
         task_id = moved_item.data(256)
-        print("Перемещен элемент с ID:", task_id)
+        # print("Перемещен элемент с ID:", task_id)
 
         # Можно получить виджет задачи
         task_widget = self.list_widget.itemWidget(moved_item)
         if task_widget:
-            print("Тек. дата:", task_widget.due_date_edit.text())
+            ins_possition = int(task_widget.item_position.text())
+            moved_curr_item = self.list_widget.item(ins_possition)
+            task_id = moved_curr_item.data(256)
+            # task_curr_widget = self.list_widget.itemWidget(moved_curr_item)
+            # print("Название:", task_curr_widget.title_edit_input.text())
 
         self.abstraction.update_task(task_id, due_date=date_to)
         self.control.refresh_list()
         # jq(self)
         # jq(self.list_widget.item(start).text) # separator_data
         # jq(self.list_widget.item(row)) # separator_data
-        print(f"Элементы {start}-{end} перемещены на позицию {row}")
+        # print(f"Элементы {start}-{end} перемещены на позицию {row}")

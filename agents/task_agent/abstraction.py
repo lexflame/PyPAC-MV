@@ -42,12 +42,8 @@ class TaskAbstraction(BaseAbstraction):
         except Exception as e:
             print("Ошибка обновления задачи:", e)
 
-
     def complite_task(self, task_id):
-        # print("""UPDATE tasks SET status = ? WHERE id = ?;""", ('done',task_id,))
         self.db.execute("""UPDATE tasks SET status = ? WHERE id = ?;""", ('done',task_id,))
-        # self.db.commit()
-        # self.db.close()
 
     def delete_task(self, task_id):
         self.db.execute("DELETE FROM tasks WHERE id = ?", (task_id,))

@@ -4,7 +4,6 @@ from PyQt6.QtWidgets import (
     QHBoxLayout, QStackedWidget, QSizePolicy
 )
 from PyQt6.QtCore import Qt, QSize, QPoint, QRect
-from PyQt6.QtGui import QCursor
 
 from config.theme.ui_style import UiStyle
 from views.window.title_bar import TitleBar

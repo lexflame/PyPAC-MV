@@ -88,6 +88,7 @@ class TaskControl(BaseControl):
             self.ListItem = QListWidgetItem()
 
             self.ListItem.setData(256, int(r['id']))
+            self.position = self.presentation.list_widget.count() - 1;
             task_widget = ItemTask(
                 title=title,
                 priority=priority,
@@ -96,7 +97,8 @@ class TaskControl(BaseControl):
                 complite_event=self.complite_task,
                 delete_event=self.delete_task,
                 collapse_all=self.collapse_all,
-                data=r
+                data=r,
+                position=self.position
             )
             # item.setSizeHint(QSize(0, 180))
             self.ListItem.setSizeHint(task_widget.sizeHint())
