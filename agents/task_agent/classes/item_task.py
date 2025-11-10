@@ -4,12 +4,14 @@ from PyQt6.QtWidgets import (
     QPushButton, QLineEdit, QDateEdit, QComboBox
 )
 from PyQt6.QtCore import Qt, QSize, QDate
+from PyQt5.QtGui import QDrag
 
 from agents.task_agent.classes.behavior.task_item_behavior import TaskItemBehavior
 
 class ItemTask(QWidget):
     def __init__(self, title, priority, deadline, list_item=None, complite_event=None, delete_event=None, collapse_all=None, data=None):
         super().__init__()
+        self.setAcceptDrops(True)
         self.is_complited_task = None
         self._list_item = list_item
         self._priority = priority
@@ -110,16 +112,15 @@ class ItemTask(QWidget):
 
         # Кнопка действия 'Драг'
         icon = qta.icon("fa6s.up-down", color="#aaa")
-        btn_drag = QPushButton()
-        btn_drag.setIcon(icon)
-        btn_drag.setIconSize(QSize(24, 24))
-        btn_drag.setFixedSize(25, 25)
+        self.btn_drag = QPushButton()
+        self.btn_drag.setIcon(icon)
+        self.btn_drag.setIconSize(QSize(24, 24))
+        self.btn_drag.setFixedSize(25, 25)
         # btn_drag.setStyleSheet("border:1px solid red;")
-        btn_drag.setToolTip('Перенести')
-        btn_drag.setMinimumSize(25, 25)
-        # btn_drag.clicked.connect(self.toggle_content)
+        self.btn_drag.setToolTip('Перенести')
+        self.btn_drag.setMinimumSize(25, 25)
 
-        item_box.addWidget(btn_drag, stretch=1)
+        item_box.addWidget(self.btn_drag, stretch=1)
         item_box.addWidget(title_widget, stretch=25)
         item_box.addWidget(action_bar, stretch=4)
 
@@ -127,7 +128,7 @@ class ItemTask(QWidget):
         self.desc = QWidget()
         self.desc.hide()
         if debug:
-            desc.setStyleSheet("""QWidget {border: 2px solid #32CD32;background-color: rgba(50, 205, 50, 0.05);}""")
+            self.desc.setStyleSheet("""QWidget {border: 2px solid #32CD32;background-color: rgba(50, 205, 50, 0.05);}""")
         desc_box = QVBoxLayout(self.desc)
         desc_box.setContentsMargins(5, 5, 5, 5)
         lang_map = {
@@ -165,9 +166,12 @@ class ItemTask(QWidget):
         self.priority_edit.addItems(["low", "normal", "high"])
         self.priority_edit.setCurrentIndex(level_index)
 
+        # action_box = QHBoxLayout()
+
         edit_box.addWidget(self.title_edit_input, stretch=15)
         edit_box.addWidget(self.due_date_edit, stretch=4)
         edit_box.addWidget(self.priority_edit, stretch=4)
+        # edit_box.addWidget(action_box, stretch=4)
 
         # --- Добавляем горизонтальные блоки в вертикальный ---
         vbox.addWidget(item)
@@ -177,3 +181,4 @@ class ItemTask(QWidget):
         # --- Основной layout окна ---
         root_layout = QVBoxLayout(self)
         root_layout.addWidget(header)
+

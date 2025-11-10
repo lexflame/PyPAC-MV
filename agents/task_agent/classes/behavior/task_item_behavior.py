@@ -1,5 +1,6 @@
-from PyQt6.QtCore import QPropertyAnimation, QEasingCurve
-from PyQt6.QtWidgets import QFrame
+from PyQt6.QtGui import QDrag, QGuiApplication, QMouseEvent, QPixmap
+from PyQt6.QtCore import QPropertyAnimation, QEasingCurve, QPoint, QMimeData, Qt
+from PyQt6.QtWidgets import QFrame, QPushButton
 
 
 class TaskItemBehavior:
@@ -82,3 +83,5 @@ class TaskItemBehavior:
                 self.parent._list_item.setSizeHint(self.parent.sizeHint())
 
         anim.finished.connect(on_finished)
+
+

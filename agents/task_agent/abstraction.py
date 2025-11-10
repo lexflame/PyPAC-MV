@@ -27,11 +27,21 @@ class TaskAbstraction(BaseAbstraction):
         )
 
     def update_task(self, task_id, **fields):
-        set_clause = ', '.join([f"{field} = '{value}'" for field, value in fields.items()])
-        params = list(fields.values()) + [task_id]
-        sql = (f"UPDATE tasks SET {set_clause} WHERE id = ?")
-        self.db.execute(sql, (task_id,))
-        self.db.commit()
+        if not fields:
+            return
+
+        set_clause = ", ".join([f"{key} = ?" for key in fields.keys()])
+        values = list(fields.values())
+        values.append(task_id)
+
+        sql = f"UPDATE tasks SET {set_clause} WHERE id = ?;"
+
+        try:
+            # используем интерфейс DatabaseManager напрямую
+            self.db.execute(sql, values)
+        except Exception as e:
+            print("Ошибка обновления задачи:", e)
+
 
     def complite_task(self, task_id):
         # print("""UPDATE tasks SET status = ? WHERE id = ?;""", ('done',task_id,))

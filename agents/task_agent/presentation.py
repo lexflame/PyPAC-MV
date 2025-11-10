@@ -1,8 +1,11 @@
 import qtawesome as qta
 from core.base import BasePresentation
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QListWidget, QLineEdit, QLabel, QHBoxLayout, QComboBox, QDateEdit
-from PyQt6.QtCore import QDate
+from PyQt6.QtCore import QDate, Qt
 from PyQt6.QtCore import QSize
+
+from agents.task_agent.abstraction import TaskAbstraction
+from agents.task_agent.control import TaskControl
 
 class TaskPresentation(BasePresentation):
     def __init__(self):
@@ -15,6 +18,7 @@ class TaskPresentation(BasePresentation):
         toolbar = QHBoxLayout()
         # self.new_btn = QPushButton("add")
         self.search_input = QLineEdit()
+        self.abstraction = TaskAbstraction()
         self.search_input.setPlaceholderText("Поиск...")
 
         self.filter_combo = QComboBox()
@@ -55,6 +59,13 @@ class TaskPresentation(BasePresentation):
 
         # List of tasks
         self.list_widget = QListWidget()
+
+        self.list_widget.setSelectionMode(QListWidget.SelectionMode.SingleSelection)
+        self.list_widget.setDragEnabled(True)
+        self.list_widget.setAcceptDrops(True)
+        self.list_widget.setDragDropMode(QListWidget.DragDropMode.InternalMove)
+        self.list_widget.setDefaultDropAction(Qt.DropAction.MoveAction)
+
         # self.list_widget.setFixedWidth(250) # Ширина столбца вывода задач
 
         self.list_widget.setStyleSheet("""
@@ -93,3 +104,29 @@ class TaskPresentation(BasePresentation):
         self.due_date.hide()
         self.priority.hide()
         self.save_btn.hide()
+        self.list_widget.model().rowsMoved.connect(self.on_rows_moved)
+
+        self.control = TaskControl(self, self.abstraction)
+
+    def on_rows_moved(self, parent, start, end, destination, row):
+
+        separator_item = self.list_widget.item(start)
+        date_to = separator_item.text()
+        moved_item = self.list_widget.item(row)
+        if moved_item is None:
+            return
+
+        task_id = moved_item.data(256)
+        print("Перемещен элемент с ID:", task_id)
+
+        # Можно получить виджет задачи
+        task_widget = self.list_widget.itemWidget(moved_item)
+        if task_widget:
+            print("Тек. дата:", task_widget.due_date_edit.text())
+
+        self.abstraction.update_task(task_id, due_date=date_to)
+        self.control.refresh_list()
+        # jq(self)
+        # jq(self.list_widget.item(start).text) # separator_data
+        # jq(self.list_widget.item(row)) # separator_data
+        print(f"Элементы {start}-{end} перемещены на позицию {row}")

@@ -1,6 +1,7 @@
 from core.base import BaseControl
-from PyQt6.QtWidgets import QListWidgetItem, QMessageBox
-from PyQt6.QtCore import Qt, QSize, QPropertyAnimation, QEasingCurve, QRect
+from PyQt6.QtWidgets import QListWidgetItem, QMessageBox, QListWidget
+from PyQt6.QtCore import Qt, QSize, QPropertyAnimation, QEasingCurve, QRect, QIODevice, QDataStream, QMimeData, \
+    QByteArray
 
 from agents.task_agent.classes.item_separator import ItemSeparator
 from agents.task_agent.classes.item_task import ItemTask
@@ -85,6 +86,7 @@ class TaskControl(BaseControl):
 
             # Создаём элемент списка
             self.ListItem = QListWidgetItem()
+
             self.ListItem.setData(256, int(r['id']))
             task_widget = ItemTask(
                 title=title,
@@ -166,5 +168,3 @@ class TaskControl(BaseControl):
         # Хранить ссылку, чтобы не уничтожалась сборщиком
         widget._collapse_anim = anim
         anim.start()
-
-
