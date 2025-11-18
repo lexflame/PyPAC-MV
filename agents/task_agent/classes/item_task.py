@@ -8,7 +8,7 @@ from PyQt6.QtCore import Qt, QSize, QDate
 from agents.task_agent.classes.behavior.task_item_behavior import TaskItemBehavior
 
 class ItemTask(QWidget):
-    def __init__(self, title, priority, deadline, list_item=None, complite_event=None, delete_event=None, collapse_all=None, data=None, position=False):
+    def __init__(self, id_task, title, priority, deadline, list_item=None, complite_event=None, delete_event=None, edit_event=None, collapse_all=None, data=None, position=False):
         super().__init__()
         self.setAcceptDrops(True)
         self.is_complited_task = None
@@ -16,15 +16,17 @@ class ItemTask(QWidget):
         self._priority = priority
         self._complite_event = complite_event
         self._delete_event = delete_event
+        self._edit_event = edit_event
         self._collapse_all = collapse_all
         self.behavior = TaskItemBehavior(self)
-        self.setupUi(title, priority, deadline, list_item, data, position)
+        self.setupUi( id_task, title, priority, deadline, list_item, data, position)
         self.setStyleSheet(f"""QWidget {{color: #ddd;background-color: transparent !important;}}""")
 
-    def setupUi(self, title, priority, deadline, list_item, data, position):
+    def setupUi(self, id_task, title, priority, deadline, list_item, data, position):
         # --- ВЕРТИКАЛЬНЫЙ layout (весь контейнер) ---
         debug = False;
         header = QWidget(self)
+        self.id_task = id_task
         self.item_position = QLineEdit(f"{position}")
         if debug:
             header.setStyleSheet("""QWidget {border: 2px solid red;background-color: rgba(0, 120, 212, 0.05);}""")
@@ -177,11 +179,18 @@ class ItemTask(QWidget):
         self.priority_edit.addItems(["low", "normal", "high"])
         self.priority_edit.setCurrentIndex(level_index)
 
+        self.btn_save_edit = QPushButton('Сохранить')
+        self.btn_save_edit.setStyleSheet("border:1px solid green;")
+        self.btn_save_edit.setToolTip('Сохранить')
+        if self._edit_event is not None and self._list_item is not None:
+            self.btn_save_edit.clicked.connect(lambda: self._edit_event(self))
+
         # action_box = QHBoxLayout()
 
         edit_box.addWidget(self.title_edit_input, stretch=15)
         edit_box.addWidget(self.due_date_edit, stretch=4)
         edit_box.addWidget(self.priority_edit, stretch=4)
+        edit_box.addWidget(self.btn_save_edit, stretch=4)
         # edit_box.addWidget(action_box, stretch=4)
 
         # --- Добавляем горизонтальные блоки в вертикальный ---

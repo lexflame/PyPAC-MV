@@ -83,4 +83,11 @@ class TaskItemBehavior:
 
         anim.finished.connect(on_finished)
 
+    def save_task_edit(self):
+        set_title       = self.parent.title_edit_input.text().strip()
+        set_date        = self.parent.due_date_edit.date().toString("yyyy-MM-dd")
+        set_priority    = self.parent.priority_edit.currentText()
+        jq(self.parent.id_task)
+        # self.parent.abstraction.update_task(task_id, status=new_status)
+
 

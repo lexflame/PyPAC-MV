@@ -45,6 +45,19 @@ class TaskControl(BaseControl):
         self.abstraction.delete_task(task_id)
         self.refresh_list()
 
+    def edit_task(self, item):
+        task_id = int(item.id_task)
+
+        set = {};
+        set['title'] = item.title_edit_input.text().strip()
+        set['due_date'] = item.due_date_edit.date().toString("yyyy-MM-dd")
+        set['priority'] = item.priority_edit.currentText()
+
+        self.abstraction.update_task(task_id, title=set['title'])
+        self.abstraction.update_task(task_id, due_date=set['due_date'])
+        self.abstraction.update_task(task_id, priority=set['priority'])
+        self.refresh_list()
+
     def on_item_double_clicked(self, item):
         task_id = item.data(256)
         # toggle done status
@@ -79,14 +92,17 @@ class TaskControl(BaseControl):
             self.ListItem = QListWidgetItem()
 
             self.ListItem.setData(256, int(r['id']))
+            self.id_current_task = int(r['id'])
             self.position = self.presentation.list_widget.count() - 1;
             task_widget = ItemTask(
+                id_task=self.id_current_task,
                 title=title,
                 priority=priority,
                 deadline=due,
                 list_item=self.ListItem,
                 complite_event=self.complite_task,
                 delete_event=self.delete_task,
+                edit_event=self.edit_task,
                 collapse_all=self.collapse_all,
                 data=r,
                 position=self.position
