@@ -4,7 +4,6 @@ from PyQt6.QtWidgets import (
     QPushButton, QLineEdit, QDateEdit, QComboBox
 )
 from PyQt6.QtCore import Qt, QSize, QDate
-from PyQt5.QtGui import QDrag
 
 from agents.task_agent.classes.behavior.task_item_behavior import TaskItemBehavior
 

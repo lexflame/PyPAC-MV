@@ -1,6 +1,5 @@
-from PyQt6.QtGui import QDrag, QGuiApplication, QMouseEvent, QPixmap
-from PyQt6.QtCore import QPropertyAnimation, QEasingCurve, QPoint, QMimeData, Qt
-from PyQt6.QtWidgets import QFrame, QPushButton
+from PyQt6.QtCore import QPropertyAnimation, QEasingCurve
+from PyQt6.QtWidgets import QFrame
 
 
 class TaskItemBehavior:

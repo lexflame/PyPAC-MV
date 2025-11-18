@@ -1,4 +1,6 @@
 import qtawesome as qta
+import re
+
 from core.base import BasePresentation
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QListWidget, QLineEdit, QLabel, QHBoxLayout, QComboBox, \
     QDateEdit, QAbstractItemView
@@ -43,11 +45,13 @@ class TaskPresentation(BasePresentation):
         self.priority = QComboBox()
         self.priority.addItems(["low", "normal", "high"])
         icon = qta.icon("mdi.chevron-double-down", color="#aaa")
+
         self.save_btn = QPushButton()
         self.save_btn.setIcon(icon)
         self.save_btn.setIconSize(QSize(24, 24))
         self.save_btn.setFixedSize(25, 25)
         self.save_btn.setToolTip('Добавить задачу')
+
         create_layout = QHBoxLayout()
         create_layout.addWidget(self.title_input)
         create_layout.addWidget(self.due_date)
@@ -103,38 +107,56 @@ class TaskPresentation(BasePresentation):
         self.layout.addWidget(self.list_widget)
 
         # Hide creation inputs initially
-        self.title_input.hide()
-        self.due_date.hide()
-        self.priority.hide()
-        self.save_btn.hide()
+        # self.title_input.hide()
+        # self.due_date.hide()
+        # self.priority.hide()
+        # self.save_btn.hide()
 
-
-        self.control = TaskControl(self, self.abstraction)
+        # self.control = TaskControl(self, self.abstraction)
 
     def on_rows_moved(self, parent, start, end, destination, row):
 
-        separator_item = self.list_widget.item(start)
-        date_to = separator_item.text()
+        def check_date_separator(s):
+            pattern = r'^\d{4}-\d{2}-\d{2}$'
+            return re.fullmatch(pattern, s) is not None
 
-        moved_item = self.list_widget.item(row)
-        if moved_item is None:
-            return
+        separator_item_start = self.list_widget.item(start)
+        date_to = separator_item_start.text()
+        jq(f"DATE FROM START :: {date_to}")
 
-        task_id = moved_item.data(256)
-        # print("Перемещен элемент с ID:", task_id)
+        separator_item_end = self.list_widget.item(end)
+        date_to_end = separator_item_end.text()
+        jq(f"DATE FROM END :: {date_to_end}")
 
-        # Можно получить виджет задачи
-        task_widget = self.list_widget.itemWidget(moved_item)
-        if task_widget:
-            ins_possition = int(task_widget.item_position.text())
-            moved_curr_item = self.list_widget.item(ins_possition)
-            task_id = moved_curr_item.data(256)
-            # task_curr_widget = self.list_widget.itemWidget(moved_curr_item)
-            # print("Название:", task_curr_widget.title_edit_input.text())
+        if check_date_separator(date_to) != True:
+            for i in range(row, 0, -1):
+                find_separ = self.list_widget.item(i)
+                if check_date_separator(find_separ.text()):
+                    date_to = find_separ.text()
+                    break
 
-        self.abstraction.update_task(task_id, due_date=date_to)
-        self.control.refresh_list()
-        # jq(self)
-        # jq(self.list_widget.item(start).text) # separator_data
-        # jq(self.list_widget.item(row)) # separator_data
-        # print(f"Элементы {start}-{end} перемещены на позицию {row}")
+        if check_date_separator(date_to):
+            moved_item = self.list_widget.item(row)
+            if moved_item is None:
+                return
+
+            task_id = moved_item.data(256)
+            # print("Перемещен элемент с ID:", task_id)
+
+            # Можно получить виджет задачи
+            task_widget = self.list_widget.itemWidget(moved_item)
+            if task_widget:
+                ins_possition = int(task_widget.item_position.text())
+                moved_curr_item = self.list_widget.item(ins_possition)
+                task_id = moved_curr_item.data(256)
+                # task_curr_widget = self.list_widget.itemWidget(moved_curr_item)
+                # print("Название:", task_curr_widget.title_edit_input.text())
+            jq(f'Новая дата:: {date_to}')
+            self.abstraction.update_task(task_id, due_date=date_to)
+            self.control.refresh_list()
+        else:
+            jq('ОШИБКА ДАТА НЕ ЗАДАННА')
+            # jq(self)
+            # jq(self.list_widget.item(start).text) # separator_data
+            # jq(self.list_widget.item(row)) # separator_data
+            # print(f"Элементы {start}-{end} перемещены на позицию {row}")

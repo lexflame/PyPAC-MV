@@ -27,7 +27,7 @@ class ProjectControl(BaseControl):
     def save_project(self):
         title = self.presentation.title_input.text().strip()
         if not title:
-            QMessageBox.warning(None, "Error", "Title is required")
+            QMessageBox.warning(None, "Error", "Title project is required")
             return
         due = self.presentation.due_date.date().toString("yyyy-MM-dd")
         priority = self.presentation.priority.currentText()
