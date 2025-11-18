@@ -4,9 +4,9 @@ import json
 from rich import print
 
 from core.context.global_context import GlobalContextClass
-from PyQt6.QtWidgets import QApplication, QSplashScreen, QGraphicsColorizeEffect, QGraphicsDropShadowEffect
-from PyQt6.QtGui import QIcon, QPixmap, QColor
-from PyQt6.QtCore import Qt, QEasingCurve, QPropertyAnimation
+from PyQt6.QtWidgets import QApplication, QSplashScreen
+from PyQt6.QtGui import QIcon, QPixmap
+from PyQt6.QtCore import Qt
 
 from core.loader import load_agents, AgentRegistry
 from core.dashboard import Dashboard
