@@ -94,12 +94,15 @@ class Dashboard(QWidget):
             work_area = QWidget()
             work_area_layout = QVBoxLayout(work_area)
             w = None
+            dbg = 0
             if hasattr(agent, 'presentation') and hasattr(agent.presentation, 'widget'):
                 w = agent.presentation.widget
+                dbg = 1
             else:
                 try:
                     cw = agent.presentation.centralWidget() if hasattr(agent.presentation, 'centralWidget') else None
                     w = cw
+                    dbg = 2
                 except Exception:
                     w = None
             work_area_layout.addWidget(w if w else QLabel(f"Компонент {title} не имеет представления"))

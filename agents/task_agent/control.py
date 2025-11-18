@@ -1,7 +1,6 @@
 from core.base import BaseControl
 from PyQt6.QtWidgets import QListWidgetItem, QMessageBox, QListWidget
-from PyQt6.QtCore import Qt, QSize, QPropertyAnimation, QEasingCurve, QRect, QIODevice, QDataStream, QMimeData, \
-    QByteArray
+from PyQt6.QtCore import Qt, QSize, QPropertyAnimation, QEasingCurve, QRect, QIODevice, QDataStream, QMimeData, QByteArray
 
 from agents.task_agent.classes.item_separator import ItemSeparator
 from agents.task_agent.classes.item_task import ItemTask

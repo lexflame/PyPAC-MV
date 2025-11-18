@@ -14,8 +14,8 @@ class LoadingScreen(QWidget):
 
     def _apply_gradient_background(self):
         gradient = QLinearGradient(0, 0, 0, self.height())
-        gradient.setColorAt(0, QColor("#dcdcdc"))
-        gradient.setColorAt(1, QColor("#f3f3f3"))
+        gradient.setColorAt(0, QColor("#3a3a3a"))
+        gradient.setColorAt(1, QColor("#1e1e1e"))
 
         palette = QPalette()
         palette.setBrush(QPalette.Window, QBrush(gradient))
@@ -37,7 +37,7 @@ class LoadingScreen(QWidget):
 
         self.status_label = QLabel("Запуск...")
         self.status_label.setAlignment(Qt.AlignRight)
-        self.status_label.setStyleSheet("font-size: 16px; color: #444;")
+        self.status_label.setStyleSheet("font-size: 16px; color: #ccc;")
         side.addWidget(self.status_label)
 
         self.progress = QProgressBar()
@@ -46,13 +46,13 @@ class LoadingScreen(QWidget):
         self.progress.setTextVisible(True)
         self.progress.setStyleSheet("""
             QProgressBar {
-                border: 1px solid #aaa;
+                border: 1px solid #ccc;
                 border-radius: 5px;
-                background: #e6e6e6;
+                background: #ccc;
                 text-align: center;
             }
             QProgressBar::chunk {
-                background-color: #6c9bd1;
+                background-color: #fff;
             }
         """)
         side.addWidget(self.progress)

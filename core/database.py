@@ -11,7 +11,6 @@ class DatabaseManager:
     def _init(self, db_path):
         db_dir = Path("db")
         self.db_path = 'db/base_app.db'
-        print(self.db_path)
         self.connection = sqlite3.connect(self.db_path)
         self.connection.row_factory = sqlite3.Row
         self._create_meta_table()
