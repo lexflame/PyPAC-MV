@@ -7,5 +7,6 @@
   "icon": "fa5s.project-diagram",
   "autoload": true,
   "order": 5,
-  "dependencies": []
+  "dependencies": [],
+  "return_types": ["project"]
 }

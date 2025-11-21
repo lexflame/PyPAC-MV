@@ -58,8 +58,34 @@ def load_agents(base_path='agents'):
         agent_name = pkg.name
         agent_path = path / agent_name
         print(f"[PyPAC-MV] 🔍 Найден компонент: {agent_name}")
+        ret_types = {}
         definition = {}
         meta = _load_meta(agent_path)
+
+        if meta['return_types']:
+            ret_types[agent_name] = meta['return_types']
+        else:
+            ret_types[agent_name] = {}
+
+        for extended_class in ['type']:
+            try:
+                if ret_types[agent_name]:
+                    type = next(iter(ret_types[agent_name][0]))
+                    typer = 'class'
+                    if extended_class == 'type':
+                        typer = 'get'
+                    module = importlib.import_module(f'{base_path}.{agent_name}.{extended_class}.{typer}_{type}')
+                    for _, obj in inspect.getmembers(module, inspect.isclass):
+                        try:
+                            if issubclass(obj, BasePresentation) and extended_class=='type':
+                                definition['type'] = obj
+                        except TypeError:
+                            if extended_class=='type' and obj.__name__.lower().endswith('type'):
+                                definition['type'] = obj
+            except ModuleNotFoundError:
+                continue
+
+
         for part in ['presentation','abstraction','control']:
             try:
                 module = importlib.import_module(f'{base_path}.{agent_name}.{part}')

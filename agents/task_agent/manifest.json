@@ -1,11 +1,17 @@
-
 {
   "name": "task_agent",
   "title": "Task Agent",
-  "description": "Пример агент-задачи",
+  "description": "Модуль - Задачи",
   "version": "1.1",
   "icon": "fa5s.tasks",
   "autoload": true,
   "order": 1,
-  "dependencies": []
+  "dependencies": [],
+  "return_types": [
+    {
+      "task": {
+        "name": "Задача"
+      }
+    }
+  ]
 }
