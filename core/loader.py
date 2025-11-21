@@ -27,7 +27,14 @@ class AgentRegistry:
                 cls.agents[name] = agent
                 print(f"[PyPAC-MV OK] ✅ Загружен компонент: {name}")
             else:
-                print(f"[PyPAC-MV WARNING] load_agents - ⚠️ Для компонента {name} — неполный набор классов")
+                if not pres_cls:
+                    print(f"[PyPAC-MV WARNING] load_agents::instantiate_all - ⚠️ Для компонента {name} — не найден класс presentation ")
+                if not abs_cls:
+                    print(f"[PyPAC-MV WARNING] load_agents::instantiate_all - ⚠️ Для компонента {name} — не найден класс abstraction ")
+                if not ctrl_cls:
+                    print(f"[PyPAC-MV WARNING] load_agents::instantiate_all - ⚠️ Для компонента {name} — не найден класс control ")
+
+
     @classmethod
     def get(cls, name):
         return cls.agents.get(name)
@@ -74,11 +81,10 @@ def load_agents(base_path='agents'):
                     prefix_class = 'class'
                     if extended_class == 'type':
                         prefix_class = 'get'
-                    jq(f'{base_path}.{agent_name}.{extended_class}.{prefix_class}_{ext_name}')
-                    module = importlib.import_module(f'{base_path}.{agent_name}.{extended_class}.{prefix_class}_{ext_name}')
-                    for _, obj in inspect.getmembers(module, inspect.isclass):
+                    extended = importlib.import_module(f'{base_path}.{agent_name}.{extended_class}.{prefix_class}_{ext_name}')
+                    for _, obj in inspect.getmembers(extended, inspect.isclass):
                         try:
-                            if issubclass(obj, BasePresentation) and extended_class=='type':
+                            if issubclass(obj, BaseAbstraction) and extended_class=='type':
                                 definition['type'] = obj
                         except TypeError:
                             if extended_class=='type' and obj.__name__.lower().endswith('type'):

@@ -2,12 +2,13 @@ from core.base import BaseControl
 from PyQt6.QtWidgets import QListWidgetItem, QMessageBox
 from PyQt6.QtCore import Qt, QSize, QPropertyAnimation, QEasingCurve, QRect
 
-from agents.task_agent.classes.item_separator import ItemSeparator
-from agents.task_agent.classes.item_task import ItemTask
+from agents.task_agent.control_classes.item_separator import ItemSeparator
+from agents.task_agent.control_classes.item_task import ItemTask
 
 class TaskControl(BaseControl):
     def __init__(self, presentation, abstraction):
         super().__init__(presentation, abstraction)
+        initedClasses(self)
         # wire up UI actions
         self.presentation.save_btn.clicked.connect(self.save_task)
         self.presentation.search_input.textChanged.connect(self.on_search)

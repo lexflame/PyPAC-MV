@@ -1,6 +1,9 @@
 import sys, os
 import builtins
 import json
+import traceback
+import inspect
+
 from rich import print
 
 from core.context.global_context import GlobalContextClass
@@ -120,8 +123,23 @@ def jq(obj):
 
     print(obj)
 
+def initedClasses(classes):
+
+    trace = traceback.extract_stack()
+    stack_func = inspect.stack()
+
+    caller_frame = trace[-2]
+    stack_frame = stack_func[1]
+
+    script_name = os.path.basename(caller_frame.filename).split('.')[0]
+    module = inspect.getmodule(inspect.stack()[1].frame)
+    module_path_import = module.__name__ if module else "unknown"
+    jq(f" module_path_import :: {module_path_import}.{script_name}_classes")
+
+
 
 builtins.jq = jq
+builtins.initedClasses = initedClasses
 
 if __name__ == '__main__':
     main()
