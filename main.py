@@ -1,9 +1,5 @@
-import sys, os
-import builtins
-import json
-import traceback
-import inspect
-
+import sys, os, builtins, json, traceback, inspect, importlib
+from pathlib import Path
 from rich import print
 
 from core.context.global_context import GlobalContextClass
@@ -123,10 +119,52 @@ def jq(obj):
 
     print(obj)
 
+def scan_folder_inc(path, recursive=True):
+    path = Path(path)
+    result = []
+
+    if recursive:
+        files = path.rglob("*")
+    else:
+        files = path.iterdir()
+
+    for p in files:
+        if p.is_file() and p.suffix != '.pyc':
+            fclass = p.name.split('.')[0]
+            inc = False
+            if len(p.name.split('_')) > 2:
+                inc = (f"_{p.name.split('_')[2].split('.')[0]}")
+            arrName = fclass.split('_')
+            NamecodeClass = '';
+            arrPath = str(p.resolve()).split("\\")
+            resolve = False
+            import_path= '';
+            for name in arrPath:
+                if name == 'agents':
+                    resolve = True
+                if resolve:
+                    valid_file = name.split('.')
+                    if len(valid_file) == 1:
+                        import_path += name + '.'
+            for NameCode in arrName:
+                NamecodeClass += NameCode.capitalize() + ''
+            result.append({
+                'name_class': NamecodeClass,
+                'import_path': import_path,
+                'include': inc,
+                'file_class': fclass,
+                'file_name': p.name,  # имя файла с расширением
+                'file_path': str(p.resolve()), # полный путь к файлу
+            })
+
+    return result
+
+
 def initedClasses(classes):
 
     trace = traceback.extract_stack()
     stack_func = inspect.stack()
+    path = {}
 
     caller_frame = trace[-2]
     stack_frame = stack_func[1]
@@ -134,12 +172,36 @@ def initedClasses(classes):
     script_name = os.path.basename(caller_frame.filename).split('.')[0]
     module = inspect.getmodule(inspect.stack()[1].frame)
     module_path_import = module.__name__ if module else "unknown"
-    jq(f" module_path_import :: {module_path_import}.{script_name}_classes")
-
-
+    path['import_from'] = {}
+    path['import_from']['classes'] = (f"{module_path_import}.{script_name}_classes")
+    path['import_from']['file'] = (f"{stack_func[1].filename.replace((f"{script_name}.py"), "")}{script_name}_classes")
+    files = scan_folder_inc(path['import_from']['file'], recursive=True)
+    for file_item in files:
+        full_import_class = (f"{file_item['import_path']}{file_item['file_class']}")
+        if file_item['include'] != False:
+            param_name = file_item['include']
+            value_name = file_item['name_class']
+            try:
+                module_path = (f"{file_item['import_path']}{file_item['file_class']}")
+                module = importlib.import_module(module_path)
+                for _, obj in inspect.getmembers(module, inspect.isclass):
+                    """"""""""""""
+                    """ TODOOO """
+                    """"""""""""""
+            except ImportError as e:
+                raise ImportError(f"Не удалось импортировать модуль {module_path}: {e}")
+            try:
+                class_name = file_item['name_class']
+                class_obj = getattr(module, class_name)
+            except AttributeError:
+                raise AttributeError(f"Класс {class_name} не найден в модуле {module_path}")
+            instance = class_obj(classes)
+            setattr(classes, param_name, instance)
+        print(file_item)
 
 builtins.jq = jq
 builtins.initedClasses = initedClasses
+builtins.scan_folder_inc = scan_folder_inc
 
 if __name__ == '__main__':
     main()
