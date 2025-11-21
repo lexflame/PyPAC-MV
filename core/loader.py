@@ -70,11 +70,12 @@ def load_agents(base_path='agents'):
         for extended_class in ['type']:
             try:
                 if ret_types[agent_name]:
-                    type = next(iter(ret_types[agent_name][0]))
-                    typer = 'class'
+                    ext_name = next(iter(ret_types[agent_name][0]))
+                    prefix_class = 'class'
                     if extended_class == 'type':
-                        typer = 'get'
-                    module = importlib.import_module(f'{base_path}.{agent_name}.{extended_class}.{typer}_{type}')
+                        prefix_class = 'get'
+                    jq(f'{base_path}.{agent_name}.{extended_class}.{prefix_class}_{ext_name}')
+                    module = importlib.import_module(f'{base_path}.{agent_name}.{extended_class}.{prefix_class}_{ext_name}')
                     for _, obj in inspect.getmembers(module, inspect.isclass):
                         try:
                             if issubclass(obj, BasePresentation) and extended_class=='type':
