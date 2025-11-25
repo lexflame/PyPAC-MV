@@ -11,6 +11,7 @@ class ItemTask(QWidget):
     def __init__(self, id_task, title, priority, deadline, list_item=None, complite_event=None, delete_event=None, edit_event=None, collapse_all=None, data=None, position=False):
         super().__init__()
         self.setAcceptDrops(True)
+        # initedClasses(self)
         self.is_complited_task = None
         self._list_item = list_item
         self._priority = priority
@@ -18,7 +19,7 @@ class ItemTask(QWidget):
         self._delete_event = delete_event
         self._edit_event = edit_event
         self._collapse_all = collapse_all
-        self.behavior = TaskItemBehavior(self)
+        self.behavior = ItemTaskBehavior(self)
         self.setupUi( id_task, title, priority, deadline, list_item, data, position)
         self.setStyleSheet(f"""QWidget {{color: #ddd;background-color: transparent !important;}}""")
 

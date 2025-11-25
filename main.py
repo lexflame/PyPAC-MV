@@ -8,6 +8,9 @@ from PyQt6.QtGui import QIcon, QPixmap
 from PyQt6.QtCore import Qt
 
 from core.loader import load_agents, AgentRegistry
+
+from core.base import BaseAgent, BasePresentation, BaseAbstraction, BaseControl
+
 from core.dashboard import Dashboard
 from core.database import DatabaseManager
 from core.eventbus import EventBus
@@ -170,24 +173,41 @@ def initedClasses(classes):
     stack_frame = stack_func[1]
 
     script_name = os.path.basename(caller_frame.filename).split('.')[0]
-    module = inspect.getmodule(inspect.stack()[1].frame)
-    module_path_import = module.__name__ if module else "unknown"
+    module_ins = inspect.getmodule(inspect.stack()[1].frame)
+    module_path_import = module_ins.__name__ if module_ins else "unknown"
+    jq(f'=== INITED CLASSES ===')
     path['import_from'] = {}
     path['import_from']['classes'] = (f"{module_path_import}.{script_name}_classes")
+
+
+    item = 'item'
+    path['import_from']['is_item'] = False
     path['import_from']['file'] = (f"{stack_func[1].filename.replace((f"{script_name}.py"), "")}{script_name}_classes")
+    if item in path['import_from']['classes']:
+        path['import_from']['is_item'] = True
+        path['import_from']['file'] = (f"{stack_func[1].filename.replace((f"{script_name}.py"), "")}behavior")
+
     files = scan_folder_inc(path['import_from']['file'], recursive=True)
+    definition = {}
     for file_item in files:
         full_import_class = (f"{file_item['import_path']}{file_item['file_class']}")
+        entity_type = module_path_import.split('.')[-1]
+        jq(f'=== INITED ({entity_type}) ===')
+
+        param_name = file_item['include']
+        value_name = file_item['name_class']
+
         if file_item['include'] != False:
-            param_name = file_item['include']
-            value_name = file_item['name_class']
             try:
                 module_path = (f"{file_item['import_path']}{file_item['file_class']}")
                 module = importlib.import_module(module_path)
-                for _, obj in inspect.getmembers(module, inspect.isclass):
-                    """"""""""""""
-                    """ TODOOO """
-                    """"""""""""""
+                # for _, obj in inspect.getmembers(module, inspect.isclass):
+                    # try:
+                    #     if issubclass(obj, classes) and entity_type == 'control':
+                    #         definition['control'] = obj
+                    # except TypeError:
+                    #     if entity_type == 'control' and obj.__name__.lower().endswith('control'):
+                    #         definition['control'] = obj
             except ImportError as e:
                 raise ImportError(f"Не удалось импортировать модуль {module_path}: {e}")
             try:
@@ -197,7 +217,27 @@ def initedClasses(classes):
                 raise AttributeError(f"Класс {class_name} не найден в модуле {module_path}")
             instance = class_obj(classes)
             setattr(classes, param_name, instance)
-        print(file_item)
+        else:
+            try:
+                module_path = (f"{file_item['import_path']}{file_item['file_class']}")
+                module = importlib.import_module(module_path)
+                for _, obj in inspect.getmembers(module, inspect.isclass):
+                    try:
+                        if issubclass(obj, classes) and entity_type == 'control':
+                            definition['control'] = obj
+                    except TypeError:
+                        if entity_type == 'control' and obj.__name__.lower().endswith('control'):
+                            definition['control'] = obj
+            except ImportError as e:
+                raise ImportError(f"Не удалось импортировать модуль {module_path}: {e}")
+            try:
+                class_name = value_name
+                class_obj = getattr(module, class_name)
+                print(class_obj)
+            except AttributeError:
+                raise AttributeError(f"Класс {class_name} не найден в модуле {module_path}")
+            instance = class_obj()
+            setattr(classes, param_name, instance)
 
 builtins.jq = jq
 builtins.initedClasses = initedClasses
