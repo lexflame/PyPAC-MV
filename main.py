@@ -1,21 +1,19 @@
-import sys, os, builtins, json, traceback, inspect, importlib
+import importlib
+import sys, os, builtins
 from pathlib import Path
-from rich import print
 
-from core.context.global_context import GlobalContextClass
+from rich import print, inspect
+
 from PyQt6.QtWidgets import QApplication, QSplashScreen
 from PyQt6.QtGui import QIcon, QPixmap
 from PyQt6.QtCore import Qt
 
-from core.loader import load_agents, AgentRegistry
-
-from core.base import BaseAgent, BasePresentation, BaseAbstraction, BaseControl
-
+from core.context.global_context import GLC
 from core.dashboard import Dashboard
 from core.database import DatabaseManager
 from core.eventbus import EventBus
 from core.resolver import DependencyResolver
-
+from core.loader import load_agents, AgentRegistry
 
 def main():
     print("=== Handler PyPAC-MV v0.5 starting ===")
@@ -43,28 +41,33 @@ def main():
         splash.showMessage("Handler PyPAC-MV v0.5 starting - Инициализация базы данных...",
                            Qt.AlignmentFlag.AlignBottom | Qt.AlignmentFlag.AlignHCenter,
                            Qt.GlobalColor.white)
+        print('[PyPAC-MV IN] Инициализация базы данных')
         db = DatabaseManager(os.path.join(root, "db/base_app.db"))
 
         splash.showMessage("PyPAC-MV :: Запуск EventBus...",
                            Qt.AlignmentFlag.AlignBottom | Qt.AlignmentFlag.AlignHCenter,
                            Qt.GlobalColor.white)
+        print('[PyPAC-MV ST] Запуск EventBus')
         eventbus = EventBus()
 
         splash.showMessage("PyPAC-MV :: Загрузка агентов...",
                            Qt.AlignmentFlag.AlignBottom | Qt.AlignmentFlag.AlignHCenter,
                            Qt.GlobalColor.white)
+        print('[PyPAC-MV ST] Запуск агентов')
         agents = load_agents('agents')
-        print(f"PyPAC-MV :: Загружено компонентов: {len(agents)}")
+        print(f"[PyPAC-MV OK] ✅ Загружено компонентов: {len(agents)}")
 
         splash.showMessage("PyPAC-MV :: Регистрация агентов в БД...",
                            Qt.AlignmentFlag.AlignBottom | Qt.AlignmentFlag.AlignHCenter,
                            Qt.GlobalColor.white)
+        print('[PyPAC-MV IN] Регистрация агентов')
         for name, meta in AgentRegistry.metadata.items():
             db.register_agent(name, meta.get('version', '1.0'))
 
         splash.showMessage("PyPAC-MV :: Настройка eventbus для агентов...",
                            Qt.AlignmentFlag.AlignBottom | Qt.AlignmentFlag.AlignHCenter,
                            Qt.GlobalColor.white)
+        print('[PyPAC-MV IN] Настройка eventbus')
         for name, agent in agents.items():
             if hasattr(agent, 'presentation'):
                 setattr(agent.presentation, 'eventbus', eventbus)
@@ -74,6 +77,7 @@ def main():
         splash.showMessage("PyPAC-MV :: Проверка зависимостей...",
                            Qt.AlignmentFlag.AlignBottom | Qt.AlignmentFlag.AlignHCenter,
                            Qt.GlobalColor.white)
+        print('[PyPAC-MV ST] Проверка зависимостей')
         resolver = DependencyResolver(AgentRegistry.metadata)
         cycles = resolver.detect_cycles()
         if cycles:
@@ -87,42 +91,13 @@ def main():
         dashboard.show()
 
     except Exception as e:
-        print(f"[ERROR] Ошибка при загрузке: {e}")
+        print(f"[PyPAC-MV ERROR] ❌ Ошибка при загрузке: {e}")
         splash.close()
         sys.exit(1)
 
     sys.exit(app.exec())
 
-
-def jq(obj):
-    """Гибкий вывод для отладки (аналог jq/print_r)"""
-    qt_type = type(obj).__name__
-    qt_module = type(obj).__module__
-    if qt_module.startswith("PyQt"):
-        if hasattr(obj, "text"):
-            print(f"<{qt_type} text='{obj.text()}' data={obj.data(256) if hasattr(obj, 'data') else None}>")
-        elif hasattr(obj, "objectName"):
-            print(f"<{qt_type} objectName='{obj.objectName()}'>")
-        else:
-            print(f"<{qt_type}>")
-        return
-
-    if isinstance(obj, (dict, list, tuple, set)):
-        try:
-            print(json.dumps(obj, indent=2, ensure_ascii=False, default=str))
-            return
-        except Exception:
-            pass
-
-    if hasattr(obj, "__dict__"):
-        attrs = {k: v for k, v in obj.__dict__.items() if not k.startswith("_")}
-        print(f"[bold cyan]{obj.__class__.__name__}[/bold cyan]:")
-        print(json.dumps(attrs, indent=2, ensure_ascii=False, default=str))
-        return
-
-    print(obj)
-
-def scan_folder_inc(path, recursive=True):
+def scan_folder(path, recursive=True):
     path = Path(path)
     result = []
 
@@ -153,95 +128,18 @@ def scan_folder_inc(path, recursive=True):
                 NamecodeClass += NameCode.capitalize() + ''
             result.append({
                 'name_class': NamecodeClass,
-                'import_path': import_path,
+                'import_path': import_path + fclass,
                 'include': inc,
                 'file_class': fclass,
                 'file_name': p.name,  # имя файла с расширением
                 'file_path': str(p.resolve()), # полный путь к файлу
+                'module': importlib.import_module(import_path + fclass),
             })
 
     return result
 
 
-def initedClasses(classes):
-
-    trace = traceback.extract_stack()
-    stack_func = inspect.stack()
-    path = {}
-
-    caller_frame = trace[-2]
-    stack_frame = stack_func[1]
-
-    script_name = os.path.basename(caller_frame.filename).split('.')[0]
-    module_ins = inspect.getmodule(inspect.stack()[1].frame)
-    module_path_import = module_ins.__name__ if module_ins else "unknown"
-    jq(f'=== INITED CLASSES ===')
-    path['import_from'] = {}
-    path['import_from']['classes'] = (f"{module_path_import}.{script_name}_classes")
-
-
-    item = 'item'
-    path['import_from']['is_item'] = False
-    path['import_from']['file'] = (f"{stack_func[1].filename.replace((f"{script_name}.py"), "")}{script_name}_classes")
-    if item in path['import_from']['classes']:
-        path['import_from']['is_item'] = True
-        path['import_from']['file'] = (f"{stack_func[1].filename.replace((f"{script_name}.py"), "")}behavior")
-
-    files = scan_folder_inc(path['import_from']['file'], recursive=True)
-    definition = {}
-    for file_item in files:
-        full_import_class = (f"{file_item['import_path']}{file_item['file_class']}")
-        entity_type = module_path_import.split('.')[-1]
-        jq(f'=== INITED ({entity_type}) ===')
-
-        param_name = file_item['include']
-        value_name = file_item['name_class']
-
-        if file_item['include'] != False:
-            try:
-                module_path = (f"{file_item['import_path']}{file_item['file_class']}")
-                module = importlib.import_module(module_path)
-                # for _, obj in inspect.getmembers(module, inspect.isclass):
-                    # try:
-                    #     if issubclass(obj, classes) and entity_type == 'control':
-                    #         definition['control'] = obj
-                    # except TypeError:
-                    #     if entity_type == 'control' and obj.__name__.lower().endswith('control'):
-                    #         definition['control'] = obj
-            except ImportError as e:
-                raise ImportError(f"Не удалось импортировать модуль {module_path}: {e}")
-            try:
-                class_name = file_item['name_class']
-                class_obj = getattr(module, class_name)
-            except AttributeError:
-                raise AttributeError(f"Класс {class_name} не найден в модуле {module_path}")
-            instance = class_obj(classes)
-            setattr(classes, param_name, instance)
-        else:
-            try:
-                module_path = (f"{file_item['import_path']}{file_item['file_class']}")
-                module = importlib.import_module(module_path)
-                for _, obj in inspect.getmembers(module, inspect.isclass):
-                    try:
-                        if issubclass(obj, classes) and entity_type == 'control':
-                            definition['control'] = obj
-                    except TypeError:
-                        if entity_type == 'control' and obj.__name__.lower().endswith('control'):
-                            definition['control'] = obj
-            except ImportError as e:
-                raise ImportError(f"Не удалось импортировать модуль {module_path}: {e}")
-            try:
-                class_name = value_name
-                class_obj = getattr(module, class_name)
-                print(class_obj)
-            except AttributeError:
-                raise AttributeError(f"Класс {class_name} не найден в модуле {module_path}")
-            instance = class_obj()
-            setattr(classes, param_name, instance)
-
-builtins.jq = jq
-builtins.initedClasses = initedClasses
-builtins.scan_folder_inc = scan_folder_inc
+builtins.scan_folder = scan_folder
 
 if __name__ == '__main__':
     main()
